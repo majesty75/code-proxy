@@ -1,0 +1,35 @@
+# ---- DATA DIRECTORY ----
+data_dir = "/var/lib/vector"
+
+# ---- SOURCE: Tail log files ----
+[sources.uta_logs]
+type = "file"
+include = ["/uta/UTA_FULL_Logs/*.log"]
+read_from = "end"                    # Only new lines (set to "beginning" for backfill)
+fingerprint.strategy = "device_and_inode"
+max_line_bytes = 102400              # 100KB max per line
+
+# ---- TRANSFORM: Enrich with metadata ----
+[transforms.enrich]
+type = "remap"
+inputs = ["uta_logs"]
+source = '''
+  .server_ip = get_env_var!("VECTOR_SERVER_IP")
+  .log_filename = replace(strip_ansi_escape_codes(.file), "/uta/UTA_FULL_Logs/", "")
+  .line = .message
+  del(.message)
+  del(.source_type)
+  .line_number = to_int(.offset) ?? 0
+'''
+
+# ---- SINK: Kafka ----
+[sinks.kafka_out]
+type = "kafka"
+inputs = ["enrich"]
+bootstrap_servers = "${KAFKA_BOOTSTRAP_SERVERS}"   # e.g. "192.168.1.100:9092"
+topic = "raw-logs"
+encoding.codec = "json"
+key_field = "log_filename"
+compression = "lz4"
+batch.max_bytes = 1048576            # 1MB batches
+batch.timeout_secs = 1
