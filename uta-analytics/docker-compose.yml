@@ -27,7 +27,7 @@ services:
     networks:
       - uta-net
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -39,6 +39,9 @@ services:
     ports:
       - "${CH_HTTP_PORT}:8123"
       - "${CH_NATIVE_PORT}:9000"
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: password
     volumes:
       - ch-data:/var/lib/clickhouse
       - ./clickhouse/init:/docker-entrypoint-initdb.d

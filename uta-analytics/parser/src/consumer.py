@@ -48,6 +48,15 @@ class LogConsumer:
 
             try:
                 value = json.loads(msg.value().decode("utf-8"))
+                
+                if value.get("system_event") == "test_completed":
+                    filename = value.get("filename", "")
+                    server_ip = value.get("server_ip", "")
+                    if filename:
+                        log.info("test_completed_event", filename=filename)
+                        self.writer.mark_session_completed(filename, server_ip)
+                    continue
+
                 row = self._process(value)
                 batch.append(row)
             except Exception:
@@ -81,6 +90,20 @@ class LogConsumer:
         parser = get_parser(line, filename)
         parsed = parser.parse(line, filename)
 
+        # Convert relative time to absolute time
+        log_time_str = parsed.get("log_time")
+        log_timestamp = None
+        if log_time_str and "started_at" in meta:
+            try:
+                parts = log_time_str.split(":")
+                if len(parts) == 3:
+                    import datetime
+                    hours, minutes, seconds = parts
+                    delta = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=float(seconds))
+                    log_timestamp = meta["started_at"] + delta
+            except Exception:
+                pass
+
         return {
             "server_ip": server_ip,
             "slot_id": meta.get("slot_id", ""),
@@ -88,11 +111,22 @@ class LogConsumer:
             "line_number": msg.get("line_number", 0),
             "raw_line": line,
             "parsed": parsed,
-            "log_timestamp": parsed.get("log_time"),
+            "log_timestamp": log_timestamp,
             "platform": meta.get("platform", ""),
             "firmware_version": meta.get("firmware_version", ""),
             "execution_type": meta.get("execution_type", ""),
             "project": meta.get("project", ""),
+            "interface": meta.get("interface", ""),
+            "fw_arch": meta.get("fw_arch", ""),
+            "nand_type": meta.get("nand_type", ""),
+            "nand_density": meta.get("nand_density", ""),
+            "manufacturer": meta.get("manufacturer", ""),
+            "package_density": meta.get("package_density", ""),
+            "production_step": meta.get("production_step", ""),
+            "release_candidate": meta.get("release_candidate", ""),
+            "rack": meta.get("rack", 0),
+            "test_purpose": meta.get("test_purpose", ""),
+            "storage_type": meta.get("storage_type", ""),
         }
 
     def _flush(self, batch: list[dict]):

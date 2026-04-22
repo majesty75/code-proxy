@@ -88,14 +88,20 @@ To add custom parsing patterns (e.g. for a custom memory dump or boot trace):
 
 ## 5. Setting up Edge UTA Servers (Vector)
 
-When deploying to a real external UTA machine emitting files:
+When deploying to a real external UTA machine emitting files, you will deploy the Vector Agent natively using Docker.
 
-1. Copy the setup script and run it on the UTA machine:
+1. Navigate to the `vector` directory on the UTA machine:
    ```bash
-   ./vector/install.sh
+   cd vector
    ```
-2. Modify the `/etc/default/vector` environment variables to point `KAFKA_BOOTSTRAP_SERVERS` towards the IP address of your Main Server.
-3. Restart Vector:
+2. Modify the `.env` parameters generated inside `install.sh` to point `KAFKA_BOOTSTRAP_SERVERS` towards the IP address of your Main Server.
+3. Run the installation script which brings up the container:
    ```bash
-   sudo systemctl restart vector
+   ./install.sh
    ```
+   *(This script automatically creates the `.env` and runs `docker compose up -d`)*
+
+To view the agent logs:
+```bash
+docker compose logs -f
+```

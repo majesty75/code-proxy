@@ -1,0 +1,2 @@
+watchdog==4.0.0
+kafka-python-ng>=2.2.2

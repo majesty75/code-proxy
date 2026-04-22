@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  vector:
+    image: timberio/vector:latest-alpine
+    container_name: uta-vector-edge
+    restart: unless-stopped
+    ports:
+      - "8686:8686"
+    volumes:
+      - ./vector.toml:/etc/vector/vector.toml:ro
+      - ./logs:/uta/UTA_FULL_Logs:ro
+      - vector-data:/var/lib/vector
+    environment:
+      - VECTOR_CONFIG=/etc/vector/vector.toml
+      - VECTOR_SERVER_IP=${VECTOR_SERVER_IP:-127.0.0.1}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
+
+  watcher:
+    build: ./watcher
+    container_name: uta-vector-watcher
+    restart: unless-stopped
+    volumes:
+      - ./logs:/uta/UTA_FULL_Logs:ro
+    environment:
+      - VECTOR_SERVER_IP=${VECTOR_SERVER_IP:-127.0.0.1}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-host.docker.internal:9092}
+      - WATCH_DIR=/uta/UTA_FULL_Logs
+      - USE_POLLING=${USE_POLLING:-true}
+
+volumes:
+  vector-data:

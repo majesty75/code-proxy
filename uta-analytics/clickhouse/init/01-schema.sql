@@ -16,7 +16,18 @@ CREATE TABLE IF NOT EXISTS uta.log_events
     platform       LowCardinality(String) DEFAULT '',
     firmware_version LowCardinality(String) DEFAULT '',
     execution_type LowCardinality(String) DEFAULT '',
-    project        LowCardinality(String) DEFAULT ''
+    project        LowCardinality(String) DEFAULT '',
+    interface      LowCardinality(String) DEFAULT '',
+    fw_arch        LowCardinality(String) DEFAULT '',
+    nand_type      LowCardinality(String) DEFAULT '',
+    nand_density   LowCardinality(String) DEFAULT '',
+    manufacturer   LowCardinality(String) DEFAULT '',
+    package_density LowCardinality(String) DEFAULT '',
+    production_step LowCardinality(String) DEFAULT '',
+    release_candidate LowCardinality(String) DEFAULT '',
+    rack           UInt8 DEFAULT 0,
+    test_purpose   LowCardinality(String) DEFAULT '',
+    storage_type   LowCardinality(String) DEFAULT ''
 )
 ENGINE = MergeTree()
 PARTITION BY toYYYYMMDD(ingested_at)
@@ -52,7 +63,7 @@ CREATE TABLE IF NOT EXISTS uta.test_sessions
     first_seen_at     DateTime64(3) DEFAULT now64(3),
     last_seen_at      DateTime64(3) DEFAULT now64(3),
     total_lines       UInt64 DEFAULT 0,
-    status            Enum8('RUNNING'=0, 'PASSED'=1, 'FAILED'=2, 'UNKNOWN'=3) DEFAULT 'RUNNING'
+    status            Enum8('RUNNING'=0, 'PASSED'=1, 'FAILED'=2, 'UNKNOWN'=3, 'COMPLETED'=4) DEFAULT 'RUNNING'
 )
 ENGINE = ReplacingMergeTree(last_seen_at)
 ORDER BY (server_ip, log_filename)

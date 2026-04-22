@@ -14,8 +14,10 @@ max_line_bytes = 102400              # 100KB max per line
 type = "remap"
 inputs = ["uta_logs"]
 source = '''
-  .server_ip = get_env_var!("VECTOR_SERVER_IP")
-  .log_filename = replace(strip_ansi_escape_codes(.file), "/uta/UTA_FULL_Logs/", "")
+  .server_ip = get_env_var("VECTOR_SERVER_IP") ?? "127.0.0.1"
+  file_path = to_string(.file) ?? ""
+  clean_path = strip_ansi_escape_codes(file_path)
+  .log_filename = replace(clean_path, "/uta/UTA_FULL_Logs/", "")
   .line = .message
   del(.message)
   del(.source_type)

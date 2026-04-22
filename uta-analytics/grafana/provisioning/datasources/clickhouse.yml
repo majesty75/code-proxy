@@ -1,11 +1,21 @@
 apiVersion: 1
+
 datasources:
   - name: ClickHouse
     type: grafana-clickhouse-datasource
     access: proxy
-    url: http://clickhouse:8123
-    jsonData:
-      defaultDatabase: uta
-      protocol: http
     isDefault: true
-    editable: false
+    editable: true
+
+    jsonData:
+      # Use 'server' + 'port' (NOT top-level 'url') to avoid the
+      # double http://http:// parse error in grafana-clickhouse-datasource v4+
+      server: clickhouse       # Docker service name on the shared uta-net network
+      port: 8123
+      protocol: http           # 'http' (port 8123) or 'native' (port 9000)
+      username: default
+      defaultDatabase: uta
+
+    secureJsonData:
+      # Must match CLICKHOUSE_PASSWORD in docker-compose.yml
+      password: password
