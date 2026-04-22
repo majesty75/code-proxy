@@ -544,21 +544,28 @@ class Settings(BaseSettings):
 ### 5a. Datasource
 
 File: `grafana/provisioning/datasources/clickhouse.yml`
+
+> ⚠️ **Plugin v4+ Breaking Change**: Do NOT use the top-level `url:` field. The grafana-clickhouse-datasource v4+ plugin parses `url` separately from jsonData and produces a `http://http://` double-prefix error. Use `server` + `port` inside `jsonData` instead.
+
 ```yaml
 apiVersion: 1
 datasources:
   - name: ClickHouse
     type: grafana-clickhouse-datasource
     access: proxy
-    url: http://clickhouse:8123
-    jsonData:
-      defaultDatabase: uta
-      protocol: http
     isDefault: true
-    editable: false
+    editable: true
+    jsonData:
+      server: clickhouse        # Docker service name on uta-net
+      port: 8123
+      protocol: http            # 'http' (port 8123) or 'native' (port 9000)
+      username: default
+      defaultDatabase: uta
+    secureJsonData:
+      password: password        # Must match CLICKHOUSE_PASSWORD in docker-compose.yml
 ```
 
-> **Note**: The ClickHouse Grafana plugin must be installed. Add `GF_INSTALL_PLUGINS=grafana-clickhouse-datasource` to Grafana env in Docker Compose.
+> **Note**: The ClickHouse Grafana plugin must be installed. Add `GF_INSTALL_PLUGINS=grafana-clickhouse-datasource` to Grafana env in Docker Compose. Allow **2–5 minutes** on first boot for the plugin to download and install before testing the datasource connection.
 
 ### 5b. Dashboard Provider
 

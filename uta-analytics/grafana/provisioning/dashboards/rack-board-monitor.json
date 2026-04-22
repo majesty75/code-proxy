@@ -1,0 +1,583 @@
+{
+  "id": null,
+  "uid": "uta-rack-board-v1",
+  "title": "UTA Rack & Board Monitor",
+  "description": "Physical rack → shelf → slot view of all active and recent test sessions with per-board metrics.",
+  "tags": ["uta", "rack", "board"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "rack",
+        "label": "Rack",
+        "description": "Filter by physical rack number",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+        "query": "SELECT DISTINCT toString(rack) FROM uta.test_sessions FINAL WHERE rack > 0 ORDER BY rack",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "hide": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "type": "query",
+        "name": "platform",
+        "label": "Platform",
+        "description": "Filter by platform (e.g. SIRIUS)",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+        "query": "SELECT DISTINCT platform FROM uta.test_sessions FINAL WHERE platform != '' ORDER BY platform",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "hide": 0,
+        "options": [],
+        "current": {}
+      },
+      {
+        "type": "query",
+        "name": "exec_type",
+        "label": "Exec Type",
+        "description": "Filter by execution type",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+        "query": "SELECT DISTINCT execution_type FROM uta.test_sessions FINAL WHERE execution_type != '' ORDER BY execution_type",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "hide": 0,
+        "options": [],
+        "current": {}
+      }
+    ]
+  },
+
+  "panels": [
+
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Total Active Sessions",
+      "description": "Boards currently running a test",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "green", "mode": "fixed" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT count() FROM uta.test_sessions FINAL WHERE status = 'RUNNING'",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Boards with Errors (1h)",
+      "description": "Distinct slots that emitted ERROR or FATAL lines in the last hour",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT countDistinct(slot_id) FROM uta.log_events WHERE severity IN ('ERROR','FATAL') AND ingested_at >= now() - INTERVAL 1 HOUR",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Total Log Events (1h)",
+      "description": "All log lines ingested in the last hour",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT count() FROM uta.log_events WHERE ingested_at >= now() - INTERVAL 1 HOUR",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Passed / Failed Sessions",
+      "description": "Completed session outcomes",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "PASSED" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "FAILED" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT status, count() AS sessions FROM uta.test_sessions FINAL WHERE status IN ('PASSED','FAILED') GROUP BY status",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Racks In Use",
+      "description": "Number of distinct racks with active sessions",
+      "gridPos": { "x": 18, "y": 0, "w": 3, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "blue", "mode": "fixed" }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT countDistinct(rack) FROM uta.test_sessions FINAL WHERE status = 'RUNNING' AND rack > 0",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Boards In Use",
+      "description": "Total distinct boards (slot_id) with active sessions",
+      "gridPos": { "x": 21, "y": 0, "w": 3, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "fixedColor": "purple", "mode": "fixed" }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT countDistinct(slot_id) FROM uta.test_sessions FINAL WHERE status = 'RUNNING'",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Live Log Event Rate — by Rack",
+      "description": "Events per minute grouped by rack number over time",
+      "gridPos": { "x": 0, "y": 4, "w": 14, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "legend": { "calcs": ["sum", "mean"], "displayMode": "table", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 8, "gradientMode": "opacity" },
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT toStartOfMinute(le.ingested_at) AS time, concat('Rack ', toString(ts.rack)) AS rack, count() AS events FROM uta.log_events le LEFT JOIN (SELECT DISTINCT slot_id, rack FROM uta.test_sessions FINAL WHERE rack > 0) ts ON le.slot_id = ts.slot_id WHERE le.ingested_at >= $__fromTime AND le.ingested_at <= $__toTime GROUP BY time, rack ORDER BY time",
+          "format": "time_series"
+        }
+      ]
+    },
+
+    {
+      "id": 11,
+      "type": "piechart",
+      "title": "Severity Distribution (Last Hour)",
+      "description": "Breakdown of log event severity levels",
+      "gridPos": { "x": 14, "y": 4, "w": 10, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "pieType": "donut",
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
+      },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "ERROR" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "FATAL" }, "properties": [{ "id": "color", "value": { "fixedColor": "dark-red", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "WARN" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "INFO" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "DEBUG" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "UNKNOWN" }, "properties": [{ "id": "color", "value": { "fixedColor": "gray", "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT severity, count() AS cnt FROM uta.log_events WHERE ingested_at >= now() - INTERVAL 1 HOUR GROUP BY severity ORDER BY cnt DESC",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 20,
+      "type": "table",
+      "title": "Rack × Shelf Summary — Active Sessions",
+      "description": "Aggregated view: for each Rack+Shelf, how many slots are active, error count, and event count",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 9 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "showHeader": true,
+        "footer": { "show": false }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left", "displayMode": "auto" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "error_lines" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 10 }] } },
+              { "id": "color", "value": { "mode": "thresholds" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "active_slots" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT ts.rack, ts.shelf, countDistinct(ts.slot_id) AS active_slots, countIf(le.severity IN ('ERROR','FATAL')) AS error_lines, count(le.event_id) AS total_events FROM uta.test_sessions FINAL ts LEFT JOIN uta.log_events le ON ts.slot_id = le.slot_id AND le.ingested_at >= now() - INTERVAL 1 HOUR WHERE ts.status = 'RUNNING' AND ts.rack > 0 GROUP BY ts.rack, ts.shelf ORDER BY ts.rack, ts.shelf",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 21,
+      "type": "table",
+      "title": "Per-Board Active Sessions",
+      "description": "One row per active board — slot_id, rack position, platform, firmware, status, running duration, error count",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 9 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "rack", "desc": false }],
+        "footer": { "show": false }
+      },
+      "links": [
+        {
+          "title": "Open Board Detail",
+          "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${__data.fields.slot_id}&var-log_filename=.*&${__url_time_range}",
+          "targetBlank": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left", "displayMode": "auto" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "RUNNING": { "color": "blue", "text": "🔵 RUNNING" } } },
+                { "type": "value", "options": { "PASSED": { "color": "green", "text": "✅ PASSED" } } },
+                { "type": "value", "options": { "FAILED": { "color": "red", "text": "❌ FAILED" } } },
+                { "type": "value", "options": { "UNKNOWN": { "color": "gray", "text": "❓ UNKNOWN" } } }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "errors_1h" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }] } },
+              { "id": "color", "value": { "mode": "thresholds" } }
+            ]
+          }
+        ]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left", "displayMode": "auto" },
+          "links": [
+            {
+              "title": "🔍 Open Board Detail",
+              "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${__data.fields.slot_id}&var-log_filename=.*&${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "RUNNING": { "color": "blue",  "text": "🔵 RUNNING" } } },
+                { "type": "value", "options": { "PASSED":  { "color": "green", "text": "✅ PASSED"  } } },
+                { "type": "value", "options": { "FAILED":  { "color": "red",   "text": "❌ FAILED"  } } },
+                { "type": "value", "options": { "UNKNOWN": { "color": "gray",  "text": "❓ UNKNOWN" } } }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "errors_1h" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [{"color": "green","value": null},{"color": "yellow","value": 1},{"color": "red","value": 5}] } },
+              { "id": "color", "value": { "mode": "thresholds" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "slot_id" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-text" },
+              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } },
+              { "id": "links", "value": [
+                {
+                  "title": "🔍 Open Board Detail",
+                  "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${__data.fields.slot_id}&var-log_filename=.*&${__url_time_range}",
+                  "targetBlank": false
+                }
+              ]}
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT ts.rack, ts.shelf, ts.slot, ts.slot_id, ts.platform, ts.firmware_version, ts.execution_type, ts.test_purpose, ts.status, ts.total_lines, dateDiff('minute', ts.started_at, now()) AS running_minutes, countIf(le.severity IN ('ERROR','FATAL')) AS errors_1h FROM uta.test_sessions FINAL ts LEFT JOIN uta.log_events le ON ts.slot_id = le.slot_id AND le.ingested_at >= now() - INTERVAL 1 HOUR WHERE ts.status = 'RUNNING' GROUP BY ts.rack, ts.shelf, ts.slot, ts.slot_id, ts.platform, ts.firmware_version, ts.execution_type, ts.test_purpose, ts.status, ts.total_lines, ts.started_at ORDER BY ts.rack, ts.shelf, ts.slot",
+          "format": "table"
+        }
+      ]
+    },
+
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Errors Over Time — by Slot",
+      "description": "ERROR + FATAL lines per minute broken down by board slot. Use rack/platform filters above to narrow down.",
+      "gridPos": { "x": 0, "y": 21, "w": 24, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "gradientMode": "opacity" },
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }]
+          }
+        }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT toStartOfMinute(ingested_at) AS time, slot_id, count() AS error_count FROM uta.log_events WHERE severity IN ('ERROR', 'FATAL') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY time, slot_id ORDER BY time",
+          "format": "time_series"
+        }
+      ]
+    },
+
+    {
+      "id": 40,
+      "type": "logs",
+      "title": "Error & Fatal Log Lines (Live)",
+      "description": "Raw log lines with ERROR or FATAL severity — newest first",
+      "gridPos": { "x": 0, "y": 29, "w": 24, "h": 10 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showTime": true,
+        "showLabels": true,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT ingested_at AS time, raw_line AS line, map('slot', slot_id, 'severity', severity, 'file', log_filename, 'platform', platform) AS labels FROM uta.log_events WHERE severity IN ('ERROR', 'FATAL') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY ingested_at DESC LIMIT 200",
+          "format": "logs"
+        }
+      ]
+    },
+
+    {
+      "id": 50,
+      "type": "table",
+      "title": "Board Session History (All Statuses)",
+      "description": "Recent test sessions across all boards — including completed runs",
+      "gridPos": { "x": 0, "y": 39, "w": 24, "h": 9 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "last_seen_at", "desc": true }],
+        "footer": { "show": true, "reducer": ["count"], "fields": ["slot_id"] }
+      },
+      "links": [
+        {
+          "title": "Open Board Detail",
+          "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${__data.fields.slot_id}&var-log_filename=${__data.fields.log_filename}&${__url_time_range}",
+          "targetBlank": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left", "displayMode": "auto" },
+          "links": [
+            {
+              "title": "🔍 Open Board Detail",
+              "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${__data.fields.slot_id}&var-log_filename=${__data.fields.log_filename}&${__url_time_range}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "RUNNING": { "color": "blue",  "text": "🔵 RUNNING" } } },
+                { "type": "value", "options": { "PASSED":  { "color": "green", "text": "✅ PASSED"  } } },
+                { "type": "value", "options": { "FAILED":  { "color": "red",   "text": "❌ FAILED"  } } },
+                { "type": "value", "options": { "UNKNOWN": { "color": "gray",  "text": "❓ UNKNOWN" } } }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "slot_id" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-text" },
+              { "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+          "rawSql": "SELECT rack, shelf, slot, slot_id, platform, firmware_version, execution_type, project, test_purpose, storage_type, nand_type, package_density, release_candidate, status, total_lines, started_at, last_seen_at FROM uta.test_sessions FINAL ORDER BY last_seen_at DESC LIMIT 100",
+          "format": "table"
+        }
+      ]
+    }
+
+  ]
+}
