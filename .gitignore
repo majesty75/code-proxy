@@ -2,6 +2,9 @@
 uta-analytics/vector/logs/*.log
 uta-analytics/vector/logs/completed/
 
+# Sample log files used for parser dev (not source; contains real test data)
+docs/*.log
+
 # Python
 __pycache__/
 *.pyc
