@@ -1,0 +1,12 @@
+# Runtime data — not part of source
+uta-analytics/vector/logs/*.log
+uta-analytics/vector/logs/completed/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# OS
+.DS_Store
