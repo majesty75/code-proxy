@@ -1,107 +1,129 @@
 # UTA Log Analytics POC
 
-This repository contains the Proof of Concept (POC) for the distributed, on-premises Log Analytics platform designed for UTA, specifically tuned for processing raw, unstructured Linux system logs and arbitrary unstructured test log formats.
+Distributed, on-premises log analytics platform for UTA test logs. The POC pipeline:
 
-## Architecture
+**Vector (agent) ➔ Kafka (broker) ➔ Python parser ➔ ClickHouse ➔ Grafana**
 
-The data pipeline follows this path:
-**Vector (Agent) ➔ Kafka (Broker) ➔ Python Parser (ETL) ➔ ClickHouse (DB) ➔ Grafana (Viz)**
+For the operating context and active plan, see [`docs/poc/07-plan-and-decisions.md`](../docs/poc/07-plan-and-decisions.md).
 
 ## Prerequisites
 
-- Docker and Docker Compose installed (compatible with Linux or WSL2).
-- At least 4GB of free RAM dedicated to Docker to safely run Kafka + ClickHouse.
+- **Windows host with Docker Desktop using the WSL2 backend.**
+- WSL2 Ubuntu 22.04+ with Docker Desktop integration enabled.
+- Python 3.10+ on Windows (only needed to run the simulator from Windows).
+- ≥ 4 GB free RAM allocated to Docker.
 
-## 1. Quick Setup
+> Running on a plain Linux host? The same instructions work; just skip the Windows-specific bits in the simulator section.
 
-1. **Clone & Configure Environment:**
-   ```bash
-   # Navigate to the analytics directory if you aren't already there
-   cd uta-analytics
-   
-   # Setup your environment parameters
-   cp .env.example .env
-   ```
-   *(Ensure you update `.env` with actual IPs if deploying the Vector edge agent outside of your local network)*
+## 1. First-time bootstrap (WSL Ubuntu)
 
-2. **Start the Infrastructure:**
-   ```bash
-   ./scripts/start.sh
-   ```
-   This script will:
-   - Boot up Kafka (KRaft mode) and ClickHouse.
-   - Automatically initialize the ClickHouse `uta` database schema.
-   - Create the internal `raw-logs` Kafka topic.
-   - Build your Python Parser Docker image and boot it alongside Grafana.
+```bash
+git clone <repo-url> ~/Projects/UTA
+cd ~/Projects/UTA/uta-analytics
+./scripts/wsl-bootstrap.sh
+```
 
-3. **Verify the Health of Services:**
-   ```bash
-   ./scripts/verify.sh
-   ```
-   You should see `✅` checkmarks indicating Kafka, ClickHouse, Parser container, and Grafana are all successfully passing health checks natively.
+`wsl-bootstrap.sh` is idempotent: it copies `.env.example → .env` if missing, builds images, brings up Kafka + ClickHouse, creates the `raw-logs` topic, applies the schema, then starts parser, Vector, watcher, and Grafana, and runs a health check.
 
-## 2. Test the Pipeline
+After it finishes:
+- Grafana — http://localhost:3005 (`admin` / `admin`)
+- ClickHouse HTTP — http://localhost:8123
 
-You don't need a real UTA server running to test the logic. We have provided a script that seeds simulated system-level logs directly into the Kafka topic.
+Full topology and troubleshooting: [`docs/poc/08-wsl-windows-setup.md`](../docs/poc/08-wsl-windows-setup.md).
+
+## 2. Simulating real-time logs from Windows
+
+The simulator takes a **folder of real `.log` files** on Windows and emulates real-time generation by streaming each file line-by-line into the WSL-side watch folder. When a file finishes, it is moved to `completed/` to fire the `test_completed` event.
+
+```powershell
+# From Windows PowerShell
+cd C:\path\to\repo\uta-analytics
+
+python .\scripts\simulate_from_folder.py `
+  --source "C:\Users\you\test-logs" `
+  --target "\\wsl$\Ubuntu\home\you\Projects\UTA\uta-analytics\vector\logs" `
+  --rate 150 `
+  --concurrency 4
+```
+
+Flags:
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--source` | required | Windows folder full of existing `.log` files |
+| `--target` | required | WSL path Vector watches (use the `\\wsl$\…` UNC path) |
+| `--rate` | 150 | Lines/second per file (≈ one board) |
+| `--concurrency` | 4 | Number of files to stream in parallel |
+| `--rename-slot` | off | Rewrite `R<r>S<s>-<n>` so duplicates of one source file simulate distinct boards |
+| `--shuffle-lines` | off | Random small jitter in line spacing for realism |
+
+The script is pure Python and runs equally from PowerShell or WSL.
+
+## 3. Backfilling existing GBs of logs
+
+The target server is rarely fresh — it usually already has historical logs. Don't pump those through Kafka. Run the backfill instead:
+
+```bash
+# From WSL
+cd uta-analytics
+docker compose up -d clickhouse
+
+BACKFILL_DIR=/path/in/wsl/to/historical/logs \
+  docker compose --profile backfill run --rm backfill \
+    --workers 8 --batch-size 1000
+```
+
+The backfill reuses the same parser modules and writes directly to ClickHouse. It's idempotent — re-running on the same folder skips files already imported as `COMPLETED`. Details: [`docs/poc/09-backfill-existing-logs.md`](../docs/poc/09-backfill-existing-logs.md).
+
+## 4. Verifying the pipeline
+
+```bash
+./scripts/verify.sh
+```
+
+Should print `✅` for Kafka, ClickHouse, parser, and Grafana.
+
+To smoke-test without files, push a few synthetic messages straight into Kafka:
 
 ```bash
 ./scripts/seed-test-data.sh
 ```
 
-**Check the data:**
-1. Log into **Grafana** at [http://localhost:3000](http://localhost:3000) using credentials `admin` / `admin`.
-2. Connect to the Clickhouse data source (Auto-provisioned).
-3. The logs have traversed the entire system and sit comfortably within the ClickHouse database's `uta.log_events` table natively queryable as arbitrary stringified JSON!
+## 5. Operations
 
-## 3. Shutting Down & Cleanup
-
-To stop and tear down the infrastructure while keeping your data volumes intact:
 ```bash
-./scripts/stop.sh
+./scripts/stop.sh                       # stop containers, keep data
+docker compose down -v                  # stop and wipe data
+docker compose logs -f parser           # tail parser logs
+docker compose up -d --build parser     # rebuild parser after editing code
 ```
 
-If you wish to completely wipe your log data and start completely fresh, use docker specifically:
-```bash
-docker compose down -v
-```
+## 6. Adding a custom parser
 
-## 4. Expanding the Parser (Flexible JSON Support)
+1. Drop a `.py` file in `parser/src/parsers/` that subclasses `BaseParser`.
+2. Implement `parser_id`, `can_parse`, and `parse`.
+3. Restart parser: `docker compose up -d --build parser`.
 
-By default, the Python parser doesn't constrain your application logs to formal Severities (`INFO`/`WARN`). Any format or shape that is extracted is inherently stored into Clickhouse stringified JSON columns.
+The roadmap of high-value parsers (test_step, io_stats, pass_fail_marker, sample_info, script_header) is in [`docs/poc/07-plan-and-decisions.md`](../docs/poc/07-plan-and-decisions.md).
 
-To add custom parsing patterns (e.g. for a custom memory dump or boot trace):
-1. Navigate to `parser/src/parsers`.
-2. Create a new `.py` file inheriting from `BaseParser`.
-3. Provide your logic in the `parse()` method which returns **any type of arbitrarily nested python dictionary**:
-   
-   ```python
-   # Example: parse() returning heavy nested arbitrary types
-   def parse(self, line: str, filename: str) -> dict[str, Any]:
-       # ... custom logic ...
-       return {
-           "hardware_status": "OK",
-           "faults": {"memory": False, "cpu": False},
-           "sub_traces": [10, 202, 59]
-       }
-   ```
-4. Restart the parser: `docker compose restart parser`
+## 7. Configuration reference
 
-## 5. Setting up Edge UTA Servers (Vector)
+All parser/runtime knobs are in `.env` (copied from `.env.example`):
 
-When deploying to a real external UTA machine emitting files, you will deploy the Vector Agent natively using Docker.
+| Var | Default | Purpose |
+|---|---|---|
+| `UTA_KAFKA_OFFSET_RESET` | `earliest` | First-run behaviour: `earliest` replays backlog, `latest` skips it. |
+| `UTA_CH_USERNAME` / `UTA_CH_PASSWORD` | `default` / `password` | ClickHouse creds; injected into ClickHouse, parser, and Grafana. |
+| `UTA_BATCH_SIZE` | 500 | Rows per ClickHouse insert. |
+| `UTA_FLUSH_MAX_RETRIES` | 5 | Retries before parser exits and Docker restarts it. |
+| `UTA_FLUSH_RETRY_MAX_SLEEP` | 30 | Cap (seconds) on exponential backoff. |
+| `GF_PORT` | 3005 | Grafana published port. |
 
-1. Navigate to the `vector` directory on the UTA machine:
-   ```bash
-   cd vector
-   ```
-2. Modify the `.env` parameters generated inside `install.sh` to point `KAFKA_BOOTSTRAP_SERVERS` towards the IP address of your Main Server.
-3. Run the installation script which brings up the container:
-   ```bash
-   ./install.sh
-   ```
-   *(This script automatically creates the `.env` and runs `docker compose up -d`)*
+## 8. Failure model (cheat sheet)
 
-To view the agent logs:
-```bash
-docker compose logs -f
-```
+| Failure | What happens | Recovery |
+|---|---|---|
+| Bad JSON in Kafka message | Logged + written to `uta.parse_errors` | Inspect with `SELECT * FROM uta.parse_errors ORDER BY occurred_at DESC` |
+| ClickHouse unreachable mid-batch | 5 retries with exponential backoff (1s→30s); then process exits 1 | Docker restarts parser; Kafka redelivers from last committed offset |
+| Vector restart | Resumes from on-disk checkpoint | None |
+| Watcher misses a file move | `test_sessions.status` stays `RUNNING` | Re-emit by moving the file again, or run a one-off `INSERT … status='COMPLETED'` |

@@ -14,6 +14,9 @@ Target: build in 1–2 weeks. Same tech foundations as production system.
 | [04-folder-structure](./poc/04-folder-structure.md) | Repository layout with file descriptions |
 | [05-implementation](./poc/05-implementation.md) | Component-by-component build guide with code/config |
 | [06-deployment](./poc/06-deployment.md) | Docker Compose, startup, verification |
+| [07-plan-and-decisions](./poc/07-plan-and-decisions.md) | Active plan: §5 fixes landed, parser roadmap, monitoring tiers, ML staging |
+| [08-wsl-windows-setup](./poc/08-wsl-windows-setup.md) | WSL2 + Windows topology, bootstrap, simulator usage |
+| [09-backfill-existing-logs](./poc/09-backfill-existing-logs.md) | One-shot import of historical GBs without going through Kafka |
 
 ### [`system/`](./system/) — Production System
 Full distributed system: **10+ servers, 150+ boards, hot/cold storage, AI/ML-ready**.

@@ -2,13 +2,13 @@
   "id": null,
   "uid": "uta-board-detail-v1",
   "title": "UTA Board Detail",
-  "description": "Drill-down view for a single board slot. Shows all numeric parsed variables as individual time series, raw log lines, and session metadata.",
-  "tags": ["uta", "board", "detail", "drill-down"],
+  "description": "Per-slot drill-down. Pass/fail trail, latency, IO, channel/block failures, power events, sense keys, smart reports, temperature, raw logs.",
+  "tags": ["uta", "board", "detail"],
   "timezone": "browser",
   "schemaVersion": 38,
   "version": 1,
   "refresh": "15s",
-  "time": { "from": "now-3h", "to": "now" },
+  "time": { "from": "now-24h", "to": "now" },
 
   "templating": {
     "list": [
@@ -16,191 +16,152 @@
         "type": "query",
         "name": "slot_id",
         "label": "Slot (Board)",
-        "description": "The board slot — e.g. R7S3-09. Set automatically when clicking from the Rack & Board Monitor.",
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "query": "SELECT DISTINCT slot_id FROM uta.test_sessions FINAL ORDER BY slot_id",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "query": "SELECT DISTINCT slot_id FROM uta.test_sessions FINAL WHERE slot_id != '' ORDER BY slot_id",
         "refresh": 2,
         "includeAll": false,
-        "multi": false,
-        "hide": 0,
-        "options": [],
-        "current": {}
+        "multi": false
       },
       {
         "type": "query",
         "name": "log_filename",
         "label": "Log File",
-        "description": "Which log file to inspect. Filtered to the selected slot.",
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "query": "SELECT DISTINCT log_filename FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY log_filename DESC",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "query": "SELECT DISTINCT log_filename FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC",
         "refresh": 2,
         "includeAll": true,
         "allValue": ".*",
-        "multi": false,
-        "hide": 0,
-        "options": [],
-        "current": {}
-      },
-      {
-        "type": "query",
-        "name": "metric_key",
-        "label": "Metric Keys",
-        "description": "Which parsed keys to overlay (multi-select). Leave as All to show every numeric key.",
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "query": "SELECT DISTINCT key FROM uta.log_events ARRAY JOIN mapKeys(parsed) AS key WHERE slot_id = '${slot_id}' AND isNotNull(toFloat64OrNull(mapValues(parsed)[indexOf(mapKeys(parsed), key)])) ORDER BY key",
-        "refresh": 2,
-        "includeAll": true,
-        "allValue": ".*",
-        "multi": true,
-        "hide": 0,
-        "options": [],
-        "current": {}
+        "multi": false
       }
     ]
   },
 
   "panels": [
-
     {
       "id": 1,
       "type": "text",
-      "title": "",
       "gridPos": { "x": 0, "y": 0, "w": 24, "h": 2 },
       "options": {
         "mode": "markdown",
-        "content": "## 📟 Board: `${slot_id}` &nbsp;&nbsp; | &nbsp;&nbsp; Log: `${log_filename}`\n← [Back to Rack & Board Monitor](/d/uta-rack-board-v1/uta-rack-board-monitor)"
+        "content": "## 📟 Board: `${slot_id}` &nbsp;|&nbsp; Log: `${log_filename}` &nbsp;|&nbsp; ← [Back to Fleet Grid](/d/uta-fleet-grid-v1/)"
       }
     },
 
     {
       "id": 2,
       "type": "stat",
-      "title": "Total Log Lines",
+      "title": "Status",
       "gridPos": { "x": 0, "y": 2, "w": 4, "h": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "colorMode": "background", "graphMode": "area", "justifyMode": "center",
-        "textMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }
-      },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
       "fieldConfig": {
         "defaults": {
-          "color": { "fixedColor": "blue", "mode": "fixed" }, "unit": "short"
-        }
-      },
-      "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT count() FROM uta.log_events WHERE slot_id = '${slot_id}' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime",
-        "format": "table"
-      }]
-    },
-
-    {
-      "id": 3,
-      "type": "stat",
-      "title": "ERROR / FATAL Lines",
-      "gridPos": { "x": 4, "y": 2, "w": 4, "h": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "colorMode": "background", "graphMode": "area", "justifyMode": "center",
-        "textMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{"color": "green","value": null},{"color": "yellow","value": 1},{"color": "red","value": 5}] },
-          "color": { "mode": "thresholds" }, "unit": "short"
-        }
-      },
-      "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT count() FROM uta.log_events WHERE slot_id = '${slot_id}' AND severity IN ('ERROR','FATAL') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime",
-        "format": "table"
-      }]
-    },
-
-    {
-      "id": 4,
-      "type": "stat",
-      "title": "Distinct Parsed Keys",
-      "description": "Number of unique field names extracted from this board's log lines",
-      "gridPos": { "x": 8, "y": 2, "w": 4, "h": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "colorMode": "value", "graphMode": "none", "justifyMode": "center",
-        "textMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }
-      },
-      "fieldConfig": {
-        "defaults": { "color": { "fixedColor": "purple", "mode": "fixed" } }
-      },
-      "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT countDistinct(key) FROM uta.log_events ARRAY JOIN mapKeys(parsed) AS key WHERE slot_id = '${slot_id}' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime",
-        "format": "table"
-      }]
-    },
-
-    {
-      "id": 5,
-      "type": "stat",
-      "title": "Session Status",
-      "gridPos": { "x": 12, "y": 2, "w": 4, "h": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "colorMode": "background", "graphMode": "none", "justifyMode": "center",
-        "textMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }
-      },
-      "fieldConfig": {
-        "defaults": {
+          "color": { "mode": "thresholds" },
           "mappings": [
-            { "type": "value", "options": { "RUNNING": { "color": "blue",  "text": "🔵 RUNNING" } } },
-            { "type": "value", "options": { "PASSED":  { "color": "green", "text": "✅ PASSED"  } } },
-            { "type": "value", "options": { "FAILED":  { "color": "red",   "text": "❌ FAILED"  } } },
-            { "type": "value", "options": { "UNKNOWN": { "color": "gray",  "text": "❓ UNKNOWN" } } }
-          ],
-          "color": { "mode": "thresholds" }
+            { "type": "value", "options": { "RUNNING":   { "color": "blue",  "text": "🔵 RUNNING"   } } },
+            { "type": "value", "options": { "PASSED":    { "color": "green", "text": "✅ PASSED"    } } },
+            { "type": "value", "options": { "FAILED":    { "color": "red",   "text": "❌ FAILED"    } } },
+            { "type": "value", "options": { "COMPLETED": { "color": "green", "text": "🏁 COMPLETED" } } },
+            { "type": "value", "options": { "UNKNOWN":   { "color": "gray",  "text": "❓ UNKNOWN"   } } }
+          ]
         }
       },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
         "rawSql": "SELECT status FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC LIMIT 1",
         "format": "table"
       }]
     },
-
     {
-      "id": 6,
+      "id": 3,
       "type": "stat",
-      "title": "Running Since (minutes)",
-      "gridPos": { "x": 16, "y": 2, "w": 4, "h": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "colorMode": "value", "graphMode": "area", "justifyMode": "center",
-        "textMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }
-      },
-      "fieldConfig": {
-        "defaults": { "unit": "m", "color": { "fixedColor": "orange", "mode": "fixed" } }
-      },
+      "title": "Total Lines",
+      "gridPos": { "x": 4, "y": 2, "w": 4, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "blue", "mode": "fixed" }, "unit": "short" } },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT dateDiff('minute', started_at, now()) FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC LIMIT 1",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime",
         "format": "table"
       }]
     },
-
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Pass Markers",
+      "gridPos": { "x": 8, "y": 2, "w": 3, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'status') = 'PASSED' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Fail Markers",
+      "gridPos": { "x": 11, "y": 2, "w": 3, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 1 },
+            { "color": "red", "value": 5 }
+          ]}
+        }
+      },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'status') = 'FAILED' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "SPOR Cycles",
+      "description": "Latest SPOR (sudden power-off recovery) cycle count",
+      "gridPos": { "x": 14, "y": 2, "w": 3, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "orange", "mode": "fixed" }, "unit": "short" } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT max(JSONExtractInt(parsed,'count')) FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event') = 'spor_cycle' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime",
+        "format": "table"
+      }]
+    },
     {
       "id": 7,
       "type": "stat",
-      "title": "Platform / Firmware",
-      "gridPos": { "x": 20, "y": 2, "w": 4, "h": 4 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "colorMode": "none", "graphMode": "none", "justifyMode": "center",
-        "textMode": "value", "reduceOptions": { "calcs": ["lastNotNull"] }
-      },
-      "fieldConfig": {
-        "defaults": { "color": { "mode": "fixed", "fixedColor": "text" } }
-      },
+      "title": "Running (min)",
+      "gridPos": { "x": 17, "y": 2, "w": 3, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "m", "color": { "fixedColor": "purple", "mode": "fixed" } } },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT dateDiff('minute', started_at, last_seen_at) FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC LIMIT 1",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Platform / FW",
+      "gridPos": { "x": 20, "y": 2, "w": 4, "h": 4 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "none", "graphMode": "none", "textMode": "value", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "text", "mode": "fixed" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
         "rawSql": "SELECT concat(platform, ' / ', firmware_version) FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC LIMIT 1",
         "format": "table"
       }]
@@ -208,120 +169,230 @@
 
     {
       "id": 10,
-      "type": "timeseries",
-      "title": "📈 All Numeric Parsed Variables — Time Series",
-      "description": "Every numeric key-value pair extracted from the parsed Map column for this board, plotted as individual series over time. Use the 'Metric Keys' filter above to focus on specific variables.",
-      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 12 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "legend": {
-          "calcs": ["min", "max", "mean", "last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": { "mode": "multi", "sort": "desc" }
-      },
+      "type": "state-timeline",
+      "title": "Test Steps — pass/fail timeline",
+      "description": "Each test step (TL_INIT, TL_INFO, TL_FFU, …) shown as a coloured band. Source: parsed.event=test_step kind=end.",
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 7 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "mergeValues": false, "showValue": "always", "rowHeight": 0.85, "alignValue": "center", "legend": { "displayMode": "list", "placement": "bottom" } },
       "fieldConfig": {
         "defaults": {
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 6,
-            "gradientMode": "opacity",
-            "spanNulls": true,
-            "showPoints": "auto"
-          },
-          "color": { "mode": "palette-classic" },
-          "unit": "short"
+          "mappings": [
+            { "type": "value", "options": { "PASSED": { "color": "green" } } },
+            { "type": "value", "options": { "FAILED": { "color": "red" } } }
+          ]
         }
       },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT\n  toStartOfMinute(ingested_at)             AS time,\n  key                                       AS metric,\n  avg(toFloat64OrZero(value))               AS value\nFROM uta.log_events\nARRAY JOIN\n  mapKeys(parsed)   AS key,\n  mapValues(parsed) AS value\nWHERE\n  slot_id = '${slot_id}'\n  AND log_filename LIKE '%${log_filename:raw}%'\n  AND ingested_at >= $__fromTime\n  AND ingested_at <= $__toTime\n  AND isNotNull(toFloat64OrNull(value))\n  AND key LIKE '%${metric_key:raw}%'\nGROUP BY time, key\nORDER BY time",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT coalesce(log_timestamp, ingested_at) AS time, JSONExtractString(parsed,'step') AS metric, JSONExtractString(parsed,'status') AS value FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event') = 'test_step' AND JSONExtractString(parsed,'kind') = 'end' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY time",
         "format": "time_series"
       }]
     },
 
     {
       "id": 11,
-      "type": "timeseries",
-      "title": "Log Event Rate (lines/min)",
-      "description": "Total log lines ingested per minute for this board",
-      "gridPos": { "x": 0, "y": 18, "w": 12, "h": 7 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "legend": { "displayMode": "hidden" },
-        "tooltip": { "mode": "single" }
-      },
+      "type": "barchart",
+      "title": "Test Step Duration (s)",
+      "description": "Wall-clock seconds reported by `>>>ELAPSED_TIME`. The X-axis is the step occurrence; sort orders by time.",
+      "gridPos": { "x": 0, "y": 13, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "legend": { "displayMode": "hidden" }, "xTickLabelRotation": -45, "tooltip": { "mode": "multi" } },
       "fieldConfig": {
         "defaults": {
-          "custom": { "lineWidth": 2, "fillOpacity": 20, "gradientMode": "opacity" },
           "color": { "fixedColor": "blue", "mode": "fixed" },
-          "unit": "short"
+          "unit": "s",
+          "custom": { "axisLabel": "elapsed_seconds" }
         }
       },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT toStartOfMinute(ingested_at) AS time, count() AS lines_per_min FROM uta.log_events WHERE slot_id = '${slot_id}' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY time ORDER BY time",
-        "format": "time_series"
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT concat(toString(rowNumberInAllBlocks()),' ', any(step)) AS step, any(elapsed) AS elapsed_seconds FROM ( SELECT line_number, JSONExtractString(parsed,'elapsed') AS step_raw, JSONExtractInt(parsed,'elapsed_seconds') AS elapsed FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='test_step' AND JSONExtractString(parsed,'kind')='elapsed_time' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY line_number ) ARRAY JOIN [step_raw] AS step GROUP BY line_number, step ORDER BY line_number",
+        "format": "table"
       }]
     },
 
     {
       "id": 12,
       "type": "timeseries",
-      "title": "Severity Rate (errors/min)",
-      "description": "ERROR + FATAL lines per minute — spikes indicate test failures or device issues",
-      "gridPos": { "x": 12, "y": 18, "w": 12, "h": 7 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "legend": { "calcs": ["sum", "max"], "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
-      },
+      "title": "Latency (μs) — Max / Avg / Min",
+      "gridPos": { "x": 12, "y": 13, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["max","mean","min"] }, "tooltip": { "mode": "multi" } },
       "fieldConfig": {
         "defaults": {
-          "custom": { "lineWidth": 2, "fillOpacity": 15, "gradientMode": "opacity" },
-          "color": { "mode": "palette-classic" },
-          "unit": "short"
+          "custom": { "lineWidth": 2, "fillOpacity": 6 },
+          "unit": "µs",
+          "color": { "mode": "palette-classic" }
         }
       },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT toStartOfMinute(ingested_at) AS time, severity, count() AS cnt FROM uta.log_events WHERE slot_id = '${slot_id}' AND severity IN ('ERROR','FATAL','WARN') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY time, severity ORDER BY time",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT toStartOfInterval(coalesce(log_timestamp, ingested_at), INTERVAL 5 SECOND) AS time, JSONExtractString(parsed,'metric') AS metric, avg(JSONExtractInt(parsed,'value')) AS value FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='io_stat' AND JSONExtractString(parsed,'metric') IN ('max_latency_us','avg_latency_us','min_latency_us') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY time, metric ORDER BY time",
         "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "IO Throughput (bytes per step)",
+      "gridPos": { "x": 0, "y": 21, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum","mean"] }, "tooltip": { "mode": "multi" } },
+      "fieldConfig": { "defaults": { "custom": { "lineWidth": 2, "fillOpacity": 10, "drawStyle": "bars" }, "unit": "bytes", "color": { "mode": "palette-classic" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT toStartOfInterval(coalesce(log_timestamp, ingested_at), INTERVAL 5 SECOND) AS time, JSONExtractString(parsed,'metric') AS metric, sum(JSONExtractInt(parsed,'value')) AS value FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='io_stat' AND JSONExtractString(parsed,'metric') IN ('read_io_bytes','write_io_bytes') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY time, metric ORDER BY time",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "IO Counts",
+      "gridPos": { "x": 12, "y": 21, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["sum","last"] }, "tooltip": { "mode": "multi" } },
+      "fieldConfig": { "defaults": { "custom": { "lineWidth": 2, "fillOpacity": 6, "drawStyle": "line" }, "unit": "short", "color": { "mode": "palette-classic" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT toStartOfInterval(coalesce(log_timestamp, ingested_at), INTERVAL 5 SECOND) AS time, JSONExtractString(parsed,'metric') AS metric, max(JSONExtractInt(parsed,'value')) AS value FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='io_stat' AND JSONExtractString(parsed,'metric') IN ('reset_count','por_count','pmc_count','io_count','read_io_count','write_io_count') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY time, metric ORDER BY time",
+        "format": "time_series"
+      }]
+    },
+
+    {
+      "id": 15,
+      "type": "table",
+      "title": "Channel × Block Failures",
+      "description": "Where on the device pass/fail markers landed. Source: parsed.event=pass_fail.",
+      "gridPos": { "x": 0, "y": 29, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false }, "sortBy": [{ "displayName": "fail_count", "desc": true }] },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "left" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "fail_count" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "color", "value": { "mode": "thresholds" } },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                { "color": "green", "value": null },
+                { "color": "yellow", "value": 1 },
+                { "color": "red", "value": 5 }
+              ] } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "pass_count" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }
+            ]
+          }
+        ]
+      },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT JSONExtractInt(parsed,'loc_ch') AS channel, JSONExtractInt(parsed,'loc_blk') AS block, countIf(JSONExtractString(parsed,'status')='PASSED') AS pass_count, countIf(JSONExtractString(parsed,'status')='FAILED') AS fail_count FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='pass_fail' AND JSONExtractString(parsed,'loc_ch') != '' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY channel, block ORDER BY fail_count DESC, channel, block LIMIT 50",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 16,
+      "type": "table",
+      "title": "Power events timeline",
+      "description": "Resets, power on/off, HW resets, and SPOR cycles.",
+      "gridPos": { "x": 12, "y": 29, "w": 12, "h": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false }, "sortBy": [{ "displayName": "time", "desc": true }] },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "left" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "event" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-text" },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "power_action":      { "color": "orange" } } },
+                { "type": "value", "options": { "hw_reset":          { "color": "red"    } } },
+                { "type": "value", "options": { "spor_cycle":        { "color": "purple" } } },
+                { "type": "value", "options": { "buffer_op":         { "color": "blue"   } } },
+                { "type": "value", "options": { "operation_complete":{ "color": "green"  } } }
+              ]}
+            ]
+          }
+        ]
+      },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT coalesce(log_timestamp, ingested_at) AS time, JSONExtractString(parsed,'event') AS event, raw_line FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event') IN ('power_action','hw_reset','spor_cycle','buffer_op','operation_complete','nop_duration','random_sleep') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY time DESC LIMIT 200",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 17,
+      "type": "table",
+      "title": "Sense Key errors",
+      "description": "SCSI sense-key reports indicating device-level failures.",
+      "gridPos": { "x": 0, "y": 37, "w": 12, "h": 6 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false } },
+      "fieldConfig": { "defaults": { "custom": { "align": "left" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT coalesce(log_timestamp, ingested_at) AS time, JSONExtractString(parsed,'sense_key') AS sense_key, JSONExtractString(parsed,'asc') AS asc_code, JSONExtractString(parsed,'ascq') AS ascq, JSONExtractString(parsed,'note') AS note FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='sense_key' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY time DESC LIMIT 100",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 18,
+      "type": "table",
+      "title": "Smart Customer Report — key metrics",
+      "description": "Bad-block counts, EC, exceptions reported by the device. Source: parsed.event=smart_customer_report.",
+      "gridPos": { "x": 12, "y": 37, "w": 12, "h": 6 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false } },
+      "fieldConfig": { "defaults": { "custom": { "align": "left" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT JSONExtractString(parsed,'report_key') AS metric, anyLast(JSONExtractString(parsed,'report_value')) AS latest_value, count() AS samples FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='smart_customer_report' AND JSONExtractString(parsed,'report_key') != '' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY metric ORDER BY metric LIMIT 100",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 19,
+      "type": "table",
+      "title": "Temperature readings",
+      "gridPos": { "x": 0, "y": 43, "w": 8, "h": 5 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false } },
+      "fieldConfig": { "defaults": { "custom": { "align": "left" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT JSONExtractString(parsed,'key') AS metric, anyLast(JSONExtractInt(parsed,'value')) AS latest_value FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='temperature' AND JSONExtractString(parsed,'kind')='field' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY metric ORDER BY metric",
+        "format": "table"
       }]
     },
 
     {
       "id": 20,
       "type": "table",
-      "title": "Parsed Key-Value Snapshot — Latest 200 Lines",
-      "description": "Exploded view of every parsed key-value pair extracted from raw log lines. Numeric values are cast for easy inspection.",
-      "gridPos": { "x": 0, "y": 25, "w": 12, "h": 10 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "showHeader": true,
-        "sortBy": [{ "displayName": "time", "desc": true }]
-      },
-      "fieldConfig": {
-        "defaults": { "custom": { "align": "left", "displayMode": "auto" } },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "value" },
-            "properties": [{ "id": "custom.width", "value": 160 }]
-          },
-          {
-            "matcher": { "id": "byName", "options": "key" },
-            "properties": [
-              { "id": "custom.width", "value": 160 },
-              { "id": "custom.displayMode", "value": "color-text" },
-              { "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }
-            ]
-          }
-        ]
-      },
+      "title": "Secure Smart Report — exceptions",
+      "gridPos": { "x": 8, "y": 43, "w": 8, "h": 5 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false } },
+      "fieldConfig": { "defaults": { "custom": { "align": "left" } } },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT ingested_at AS time, line_number, key, value FROM uta.log_events ARRAY JOIN mapKeys(parsed) AS key, mapValues(parsed) AS value WHERE slot_id = '${slot_id}' AND log_filename LIKE '%${log_filename:raw}%' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY ingested_at DESC LIMIT 200",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT JSONExtractString(parsed,'key') AS exception_key, anyLast(JSONExtractString(parsed,'value')) AS value, anyLast(JSONExtractString(parsed,'note')) AS note, count() AS samples FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='secure_smart_report' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY exception_key ORDER BY exception_key",
         "format": "table"
       }]
     },
@@ -329,29 +400,14 @@
     {
       "id": 21,
       "type": "table",
-      "title": "Parsed Key Statistics",
-      "description": "For each distinct parsed key: how many lines contained it, and min/max/avg of its numeric value.",
-      "gridPos": { "x": 12, "y": 25, "w": 12, "h": 10 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "showHeader": true,
-        "sortBy": [{ "displayName": "occurrences", "desc": true }]
-      },
-      "fieldConfig": {
-        "defaults": { "custom": { "align": "left", "displayMode": "auto" } },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "avg_value" },
-            "properties": [
-              { "id": "custom.displayMode", "value": "color-background-solid" },
-              { "id": "color", "value": { "mode": "continuous-BlYlRd" } }
-            ]
-          }
-        ]
-      },
+      "title": "FW Type Detection (set_fw_type stages)",
+      "gridPos": { "x": 16, "y": 43, "w": 8, "h": 5 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false } },
+      "fieldConfig": { "defaults": { "custom": { "align": "left" } } },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT key, count() AS occurrences, countIf(isNotNull(toFloat64OrNull(value))) AS numeric_count, round(avg(toFloat64OrZero(value)), 4) AS avg_value, round(min(toFloat64OrZero(value)), 4) AS min_value, round(max(toFloat64OrZero(value)), 4) AS max_value FROM uta.log_events ARRAY JOIN mapKeys(parsed) AS key, mapValues(parsed) AS value WHERE slot_id = '${slot_id}' AND log_filename LIKE '%${log_filename:raw}%' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime GROUP BY key ORDER BY occurrences DESC",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT JSONExtractString(parsed,'stage') AS stage, JSONExtractString(parsed,'step') AS step, JSONExtractString(parsed,'from') AS detected_from, JSONExtractString(parsed,'to') AS detected_to FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND JSONExtractString(parsed,'event')='set_fw_type' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY line_number LIMIT 50",
         "format": "table"
       }]
     },
@@ -359,26 +415,16 @@
     {
       "id": 30,
       "type": "logs",
-      "title": "Raw Log Lines",
-      "description": "Full raw log lines for this board — newest first. Filter by severity using the dashboard time range.",
-      "gridPos": { "x": 0, "y": 35, "w": 24, "h": 12 },
-      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": false,
-        "showTime": true,
-        "showLabels": true,
-        "showCommonLabels": false,
-        "wrapLogMessage": true,
-        "sortOrder": "Descending"
-      },
+      "title": "Raw log lines",
+      "description": "Full raw lines for this slot, newest first. Click to expand.",
+      "gridPos": { "x": 0, "y": 48, "w": 24, "h": 12 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "dedupStrategy": "none", "enableLogDetails": true, "showTime": true, "showLabels": true, "showCommonLabels": false, "wrapLogMessage": true, "sortOrder": "Descending" },
       "targets": [{
-        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "${DS_CLICKHOUSE}" },
-        "rawSql": "SELECT ingested_at AS time, raw_line AS line, map('severity', severity, 'line_no', toString(line_number), 'file', log_filename) AS labels FROM uta.log_events WHERE slot_id = '${slot_id}' AND log_filename LIKE '%${log_filename:raw}%' AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY ingested_at DESC LIMIT 500",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT coalesce(log_timestamp, ingested_at) AS time, raw_line AS line, map('event', JSONExtractString(parsed,'event'), 'line_no', toString(line_number), 'file', log_filename) AS labels FROM uta.log_events WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') AND ingested_at >= $__fromTime AND ingested_at <= $__toTime ORDER BY ingested_at DESC LIMIT 500",
         "format": "logs"
       }]
     }
-
   ]
 }

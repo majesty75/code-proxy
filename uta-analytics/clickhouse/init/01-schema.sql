@@ -68,3 +68,18 @@ CREATE TABLE IF NOT EXISTS uta.test_sessions
 ENGINE = ReplacingMergeTree(last_seen_at)
 ORDER BY (server_ip, log_filename)
 SETTINGS index_granularity = 8192;
+
+-- Parse-error sink: lines the consumer could not process land here for
+-- forensic inspection instead of being silently dropped. 7-day TTL.
+CREATE TABLE IF NOT EXISTS uta.parse_errors
+(
+    occurred_at    DateTime64(3) DEFAULT now64(3),
+    raw_message    String,
+    filename       String,
+    error_type     LowCardinality(String),
+    error_message  String
+)
+ENGINE = MergeTree()
+ORDER BY occurred_at
+TTL occurred_at + INTERVAL 7 DAY
+SETTINGS index_granularity = 8192;

@@ -1,5 +1,7 @@
 import json
 import signal
+import sys
+import time
 import structlog
 from confluent_kafka import Consumer, KafkaError
 from parsers import get_parser
@@ -18,7 +20,7 @@ class LogConsumer:
         self.consumer = Consumer({
             "bootstrap.servers": settings.kafka_bootstrap_servers,
             "group.id": "uta-parser",
-            "auto.offset.reset": "latest",
+            "auto.offset.reset": settings.kafka_offset_reset,
             "enable.auto.commit": False,
             "max.poll.interval.ms": 300000,
         })
@@ -46,9 +48,11 @@ class LogConsumer:
                 log.error("kafka_error", error=str(msg.error()))
                 continue
 
+            raw_bytes = msg.value()
+            value: dict | None = None
             try:
-                value = json.loads(msg.value().decode("utf-8"))
-                
+                value = json.loads(raw_bytes.decode("utf-8"))
+
                 if value.get("system_event") == "test_completed":
                     filename = value.get("filename", "")
                     server_ip = value.get("server_ip", "")
@@ -59,8 +63,16 @@ class LogConsumer:
 
                 row = self._process(value)
                 batch.append(row)
-            except Exception:
-                log.exception("parse_error", raw=msg.value())
+            except Exception as exc:
+                log.exception("parse_error")
+                raw_str = raw_bytes.decode("utf-8", errors="replace") if raw_bytes else ""
+                filename = value.get("log_filename", "") if isinstance(value, dict) else ""
+                self.writer.write_parse_error(
+                    raw_message=raw_str,
+                    filename=filename,
+                    error_type=type(exc).__name__,
+                    error_message=str(exc),
+                )
 
             if len(batch) >= self.settings.batch_size:
                 self._flush(batch)
@@ -130,9 +142,36 @@ class LogConsumer:
         }
 
     def _flush(self, batch: list[dict]):
-        try:
-            self.writer.write_events(batch)
-            self.consumer.commit()
-            log.info("batch_flushed", count=len(batch))
-        except Exception:
-            log.exception("flush_error", count=len(batch))
+        """
+        Write a batch to ClickHouse and commit Kafka offsets only on success.
+        Retries with exponential backoff. On permanent failure, exits the
+        process so Docker restarts it and Kafka replays the unflushed batch
+        from the last committed offset.
+        """
+        max_retries = self.settings.flush_max_retries
+        max_sleep = self.settings.flush_retry_max_sleep
+        for attempt in range(1, max_retries + 1):
+            try:
+                self.writer.write_events(batch)
+                self.consumer.commit()
+                log.info("batch_flushed", count=len(batch))
+                return
+            except Exception as exc:
+                if attempt >= max_retries:
+                    log.error(
+                        "flush_failed_giving_up",
+                        count=len(batch),
+                        attempts=attempt,
+                        error=str(exc),
+                    )
+                    # Exit non-zero so Docker `restart: unless-stopped` brings us
+                    # back. Kafka will redeliver from the last committed offset.
+                    sys.exit(1)
+                sleep_secs = min(2 ** (attempt - 1), max_sleep)
+                log.warning(
+                    "flush_retry",
+                    attempt=attempt,
+                    sleep_secs=sleep_secs,
+                    error=str(exc),
+                )
+                time.sleep(sleep_secs)

@@ -3,6 +3,8 @@ from typing import Any
 from .base import BaseParser
 
 class SmartCustomerReportParser(BaseParser):
+    priority = 13
+
     @property
     def parser_id(self) -> str:
         return "smart_customer_report"
@@ -11,8 +13,8 @@ class SmartCustomerReportParser(BaseParser):
         return "SmartCustomerReport" in line
 
     def parse(self, line: str, filename: str) -> dict[str, Any]:
-        result = {}
-        
+        result: dict[str, Any] = {"event": "smart_customer_report"}
+
         # Example lines:
         # 0000:00:58 SmartCustomerReport FirmwareSuccessCount = 0
         # 0000:00:37 SmartCustomerReport SLC EC = Max 1 / Min 0 / Avg 0

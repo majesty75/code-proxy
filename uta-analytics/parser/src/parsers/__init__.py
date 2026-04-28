@@ -17,8 +17,10 @@ def _discover_parsers():
     for cls in BaseParser.__subclasses__():
         _registry.append(cls())
 
-    # Sort: specific parsers first, 'default' last
-    _registry.sort(key=lambda p: (p.parser_id == "default", p.parser_id))
+    # Sort by explicit priority (lower runs first), then by parser_id for
+    # deterministic ordering within the same priority. The default parser
+    # uses priority=999 so it always falls through last.
+    _registry.sort(key=lambda p: (getattr(p, "priority", 50), p.parser_id))
 
 
 def get_parser(line: str, filename: str) -> BaseParser:

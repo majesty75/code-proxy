@@ -2,6 +2,7 @@ apiVersion: 1
 
 datasources:
   - name: ClickHouse
+    uid: clickhouse-uta
     type: grafana-clickhouse-datasource
     access: proxy
     isDefault: true
@@ -13,9 +14,9 @@ datasources:
       server: clickhouse       # Docker service name on the shared uta-net network
       port: 8123
       protocol: http           # 'http' (port 8123) or 'native' (port 9000)
-      username: default
+      username: ${UTA_CH_USERNAME}
       defaultDatabase: uta
 
     secureJsonData:
       # Must match CLICKHOUSE_PASSWORD in docker-compose.yml
-      password: password
+      password: ${UTA_CH_PASSWORD}

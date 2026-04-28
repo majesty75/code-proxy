@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 
 class BaseParser(ABC):
     """All custom parsers must extend this class."""
+
+    # Lower runs first. Specific parsers should set ~10, generic ~90,
+    # the default catch-all = 999. Override at the class level.
+    priority: int = 50
 
     @property
     @abstractmethod
