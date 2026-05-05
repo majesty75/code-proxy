@@ -34,6 +34,12 @@ Full distributed system: **10+ servers, 150+ boards, hot/cold storage, AI/ML-rea
 | [09-storage-strategy](./system/09-storage-strategy.md) | Hot/cold tiered storage design |
 | [10-observability](./system/10-observability.md) | Monitoring, alerting, health checks |
 
+### [`setup/`](./setup/) — Deployment Guides
+| File | Description |
+|------|-------------|
+| [work-laptop-setup.md](./setup/work-laptop-setup.md) | Corporate Windows + WSL2 laptop bootstrap (proxy / SSL inspection workarounds) |
+| [airgapped-deployment.md](./setup/airgapped-deployment.md) | Move a working stack to an air-gapped Windows 10 / 11 server, including offline WSL install |
+
 ### Legacy Reference
 | File | Description |
 |------|-------------|
