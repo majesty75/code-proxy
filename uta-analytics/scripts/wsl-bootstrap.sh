@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# One-shot bootstrap for the UTA analytics POC on WSL2 (Ubuntu) with
-# Docker Desktop's WSL backend. Idempotent — safe to re-run.
+# Bootstrap UTA analytics on WSL2 (Ubuntu) with Docker Desktop's WSL backend.
+# Idempotent — safe to re-run.
 set -euo pipefail
 
-# Resolve to the repo's uta-analytics/ directory regardless of cwd.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_DIR}"
@@ -11,78 +10,52 @@ cd "${PROJECT_DIR}"
 green()  { printf "\033[32m%s\033[0m\n" "$*"; }
 yellow() { printf "\033[33m%s\033[0m\n" "$*"; }
 red()    { printf "\033[31m%s\033[0m\n" "$*" 1>&2; }
-
-step() { printf "\n\033[1;36m▶ %s\033[0m\n" "$*"; }
+step()   { printf "\n\033[1;36m▶ %s\033[0m\n" "$*"; }
 
 # ---------- 1. Sanity checks ----------
 step "Checking prerequisites"
-
-if ! command -v docker >/dev/null 2>&1; then
-  red "docker not found. Enable Docker Desktop's WSL integration for this distro."
-  exit 1
-fi
-
-if ! docker version >/dev/null 2>&1; then
-  red "docker daemon unreachable. Start Docker Desktop and re-run."
-  exit 1
-fi
-
-if ! docker compose version >/dev/null 2>&1; then
-  red "docker compose plugin missing. Update Docker Desktop."
-  exit 1
-fi
-
+command -v docker >/dev/null || { red "docker not found"; exit 1; }
+docker version >/dev/null 2>&1 || { red "docker daemon unreachable"; exit 1; }
+docker compose version >/dev/null 2>&1 || { red "docker compose plugin missing"; exit 1; }
 green "✓ Docker reachable"
 
 # ---------- 2. .env ----------
 step "Preparing .env"
 if [[ ! -f .env ]]; then
   cp .env.example .env
-  green "✓ Created .env from .env.example (review and adjust if needed)"
+  green "✓ Created .env (review)"
 else
-  yellow "• .env already exists, leaving it alone"
+  yellow "• .env already present"
 fi
 
-# ---------- 3. Watch directory ----------
-step "Preparing vector/logs/ watch directory"
+# ---------- 3. Watch dir (kept for future Vector wiring) ----------
 mkdir -p vector/logs/completed
-green "✓ vector/logs/ ready"
 
-# ---------- 4. Build images ----------
-step "Building images (this can take a few minutes the first time)"
-docker compose build --pull parser
+# ---------- 4. Build parser image ----------
+step "Building parser image"
+docker compose build parser
 
 # ---------- 5. Start core infra ----------
 step "Starting Kafka and ClickHouse"
 docker compose up -d kafka clickhouse
 
-step "Waiting for Kafka to become healthy"
+step "Waiting for Kafka"
 for i in {1..60}; do
   if docker compose exec -T kafka /opt/kafka/bin/kafka-broker-api-versions.sh \
        --bootstrap-server localhost:9092 >/dev/null 2>&1; then
-    green "✓ Kafka up"
-    break
+    green "✓ Kafka up"; break
   fi
   sleep 2
-  if [[ $i -eq 60 ]]; then
-    red "Kafka did not become healthy in 120s"
-    docker compose logs --tail=80 kafka
-    exit 1
-  fi
+  [[ $i -eq 60 ]] && { red "Kafka did not become healthy in 120s"; docker compose logs --tail=80 kafka; exit 1; }
 done
 
-step "Waiting for ClickHouse to become healthy"
+step "Waiting for ClickHouse"
 for i in {1..60}; do
   if docker compose exec -T clickhouse clickhouse-client --query "SELECT 1" >/dev/null 2>&1; then
-    green "✓ ClickHouse up"
-    break
+    green "✓ ClickHouse up"; break
   fi
   sleep 2
-  if [[ $i -eq 60 ]]; then
-    red "ClickHouse did not become healthy in 120s"
-    docker compose logs --tail=80 clickhouse
-    exit 1
-  fi
+  [[ $i -eq 60 ]] && { red "ClickHouse did not become healthy in 120s"; docker compose logs --tail=80 clickhouse; exit 1; }
 done
 
 # ---------- 6. Topic ----------
@@ -91,41 +64,47 @@ docker compose exec -T kafka /opt/kafka/bin/kafka-topics.sh \
   --bootstrap-server localhost:9092 \
   --create --if-not-exists \
   --topic raw-logs \
-  --partitions 1 --replication-factor 1 \
-  --config retention.ms=86400000 >/dev/null
+  --partitions 3 --replication-factor 1 >/dev/null
 green "✓ raw-logs topic ready"
 
-# ---------- 7. Schema ----------
-# init scripts under clickhouse/init are auto-applied on first container start.
-# We re-apply them explicitly here so the bootstrap is safe on existing volumes.
-step "Applying ClickHouse schema (idempotent)"
+# ---------- 7. Schema (idempotent re-apply) ----------
+step "Applying ClickHouse schema"
 docker compose exec -T clickhouse \
-  clickhouse-client --multiquery < clickhouse/init/01-schema.sql
+  clickhouse-client --user=default --password=password --multiquery \
+  < clickhouse/init/01-schema.sql
 green "✓ Schema applied"
 
-# ---------- 8. App services ----------
-step "Starting parser, vector, watcher, grafana"
-docker compose up -d parser vector watcher grafana
+# ---------- 8. Parser + Grafana ----------
+step "Starting parser and Grafana"
+docker compose up -d parser grafana
+sleep 4
 
-# ---------- 9. Verify ----------
-step "Health check"
-sleep 3
-"${SCRIPT_DIR}/verify.sh" || true
+# ---------- 9. Health summary ----------
+step "Status"
+docker compose ps
 
-GF_PORT="$(grep -E '^GF_PORT=' .env | cut -d= -f2 | tr -d ' \r')"
+GF_PORT="$(grep -E '^GF_PORT=' .env | cut -d= -f2 | tr -d ' \r' || echo 3005)"
 GF_PORT="${GF_PORT:-3005}"
 
 cat <<EOF
 
 $(green "Bootstrap complete.")
 
-  Grafana    : http://localhost:${GF_PORT}   (admin / admin)
-  ClickHouse : http://localhost:8123
+  Grafana     : http://localhost:${GF_PORT}   (admin / admin)
+    Lab Grid    → http://localhost:${GF_PORT}/d/uta-lab-grid-v1/
+    Board Detail → http://localhost:${GF_PORT}/d/uta-board-detail-v1/
+  ClickHouse  : http://localhost:8123          (default / password)
+  Kafka       : localhost:9092                 (raw-logs topic)
 
 Next steps:
-  • Simulate live logs from Windows:
-      python .\\scripts\\simulate_from_folder.py --source <win-folder> --target \\\\wsl\$\\Ubuntu\\<wsl-watch-path>
-  • Backfill existing logs:
-      BACKFILL_DIR=<wsl-path> docker compose --profile backfill run --rm backfill
+  • Seed demo data (direct ClickHouse insert, fastest):
+      python3 scripts/demo_seed.py
+  • Stream a single board through the live pipeline (Kafka → parser → ClickHouse):
+      docker run --rm --network uta-analytics_uta-net \\
+        -v "\$(pwd)":/work -w /work uta-analytics-parser \\
+        python scripts/demo_kafka_producer.py --bootstrap kafka:9092 \\
+        --blocks 4 --rate 600 --rack 9 --shelf 1 --slot 1
+  • Tail the parser:
+      docker compose logs -f parser
 
 EOF

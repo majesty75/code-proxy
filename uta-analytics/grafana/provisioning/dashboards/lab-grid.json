@@ -1,0 +1,289 @@
+{
+  "id": null,
+  "uid": "uta-lab-grid-v1",
+  "title": "UTA Lab Grid",
+  "description": "Lab-style grid of every test board. One tile per slot with live test info; click any tile to drill into Board Detail in a new tab.",
+  "tags": ["uta", "lab", "fleet", "rack"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "15s",
+  "time": { "from": "now-24h", "to": "now" },
+
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "rack",
+        "label": "Rack",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "query": "SELECT DISTINCT toString(rack) FROM uta.test_sessions FINAL WHERE rack > 0 ORDER BY rack",
+        "refresh": 2, "includeAll": true, "allValue": ".*", "multi": true
+      },
+      {
+        "type": "query",
+        "name": "controller",
+        "label": "Controller",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "query": "SELECT DISTINCT controller FROM uta.test_sessions FINAL WHERE controller != '' ORDER BY controller",
+        "refresh": 2, "includeAll": true, "allValue": ".*", "multi": true
+      },
+      {
+        "type": "query",
+        "name": "fw_version",
+        "label": "Firmware",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "query": "SELECT DISTINCT firmware_version FROM uta.test_sessions FINAL WHERE firmware_version != '' ORDER BY firmware_version",
+        "refresh": 2, "includeAll": true, "allValue": ".*", "multi": true
+      },
+      {
+        "type": "query",
+        "name": "test_purpose",
+        "label": "Test Purpose",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "query": "SELECT DISTINCT test_purpose FROM uta.test_sessions FINAL WHERE test_purpose != '' ORDER BY test_purpose",
+        "refresh": 2, "includeAll": true, "allValue": ".*", "multi": true
+      },
+      {
+        "type": "query",
+        "name": "slot_id",
+        "label": "Slot",
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "query": "SELECT DISTINCT slot_id FROM uta.test_sessions FINAL WHERE slot_id != '' AND match(toString(rack), '${rack:regex}') AND match(controller, '${controller:regex}') AND match(firmware_version, '${fw_version:regex}') AND match(test_purpose, '${test_purpose:regex}') ORDER BY rack, shelf, slot",
+        "refresh": 2, "includeAll": true, "allValue": ".*", "multi": true,
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "hide": 2
+      }
+    ]
+  },
+
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Running",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "blue", "mode": "fixed" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() FROM uta.test_sessions FINAL WHERE status = 'RUNNING'",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Failed",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "red", "mode": "fixed" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() FROM uta.test_sessions FINAL WHERE status = 'FAILED'",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Completed",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "green", "mode": "fixed" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() FROM uta.test_sessions FINAL WHERE status = 'COMPLETED'",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Snapshots (window)",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "purple", "mode": "fixed" }, "unit": "short" } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() FROM uta.interlude_snapshots WHERE block_started_at >= $__fromTime AND block_started_at <= $__toTime",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Slots Tracked",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "orange", "mode": "fixed" } } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT countDistinct(slot_id) FROM uta.test_sessions FINAL WHERE slot_id != ''",
+        "format": "table"
+      }]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Active Snap Rate",
+      "description": "Snapshots per minute (last 10 min)",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 3 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "color": { "fixedColor": "yellow", "mode": "fixed" }, "unit": "short", "decimals": 2 } },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT count() / 10.0 FROM uta.interlude_snapshots WHERE block_started_at >= now() - INTERVAL 10 MINUTE",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "${slot_id}",
+      "description": "Click tile → Board Detail (opens in a new tab).",
+      "repeat": "slot_id",
+      "repeatDirection": "h",
+      "maxPerRow": 6,
+      "gridPos": { "x": 0, "y": 3, "w": 4, "h": 5 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^short_name$/", "values": false }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "type": "value", "options": { "RUNNING":   { "color": "blue",       "index": 0 } } },
+            { "type": "value", "options": { "PASSED":    { "color": "green",      "index": 1 } } },
+            { "type": "value", "options": { "FAILED":    { "color": "red",        "index": 2 } } },
+            { "type": "value", "options": { "COMPLETED": { "color": "dark-green", "index": 3 } } },
+            { "type": "value", "options": { "UNKNOWN":   { "color": "gray",       "index": 4 } } }
+          ],
+          "links": [{
+            "title": "Board Detail",
+            "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${slot_id}&var-log_filename=All&${__url_time_range}",
+            "targetBlank": true
+          }]
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [{ "id": "custom.hidden", "value": false }]
+          }
+        ]
+      },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT toString(status) AS status, concat(controller, ' ', replaceAll(interface, '_', ' '), '\\n', patch_version, ' ', release_candidate, ' ', firmware_version, '\\n', nand_type, ' ', nand_density, ' ', package_density) AS short_name, concat(toString(toInt32((dateDiff('second', started_at, now()))/3600)), 'h ', toString(toInt32(((dateDiff('second', started_at, now())) % 3600)/60)), 'm') AS duration_str, snapshot_count FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC LIMIT 1",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 30,
+      "type": "table",
+      "title": "Roster (tabular view of every slot)",
+      "description": "Same data as the tile grid, sortable. Click slot_id → Board Detail in new tab.",
+      "gridPos": { "x": 0, "y": 30, "w": 24, "h": 12 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": { "showHeader": true, "footer": { "show": false }, "sortBy": [{ "displayName": "rack", "desc": false }] },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "left", "displayMode": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "status" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "RUNNING":   { "color": "blue",  "text": "RUNNING"   } } },
+                { "type": "value", "options": { "PASSED":    { "color": "green", "text": "PASSED"    } } },
+                { "type": "value", "options": { "FAILED":    { "color": "red",   "text": "FAILED"    } } },
+                { "type": "value", "options": { "COMPLETED": { "color": "dark-green", "text": "COMPLETED" } } },
+                { "type": "value", "options": { "UNKNOWN":   { "color": "gray",  "text": "UNKNOWN"   } } }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "slot_id" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-text" },
+              { "id": "color", "value": { "fixedColor": "light-blue", "mode": "fixed" } },
+              { "id": "links", "value": [{
+                "title": "Board Detail",
+                "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${__data.fields.slot_id}&var-log_filename=All&${__url_time_range}",
+                "targetBlank": true
+              }]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "snapshot_count" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              { "id": "color", "value": { "mode": "thresholds" } },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [
+                { "color": "transparent", "value": null },
+                { "color": "blue", "value": 1 }
+              ] } }
+            ]
+          }
+        ]
+      },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT rack, shelf, slot, slot_id, toString(status) AS status, controller, replaceAll(interface, '_', ' ') AS interface, patch_version, release_candidate, firmware_version, nand_type, nand_density, package_density, test_purpose, started_at, last_snapshot_at, snapshot_count FROM uta.test_sessions FINAL WHERE slot_id != '' AND match(toString(rack), '${rack:regex}') AND match(controller, '${controller:regex}') AND match(firmware_version, '${fw_version:regex}') AND match(test_purpose, '${test_purpose:regex}') ORDER BY rack, shelf, slot",
+        "format": "table"
+      }]
+    },
+
+    {
+      "id": 40,
+      "type": "state-timeline",
+      "title": "Slot status timeline",
+      "description": "Coloured bands show RUNNING/PASSED/FAILED/COMPLETED transitions per slot.",
+      "gridPos": { "x": 0, "y": 42, "w": 24, "h": 10 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+      "options": {
+        "mergeValues": true,
+        "showValue": "auto",
+        "rowHeight": 0.85,
+        "alignValue": "center",
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "RUNNING":   { "color": "blue"       } } },
+            { "type": "value", "options": { "PASSED":    { "color": "green"      } } },
+            { "type": "value", "options": { "FAILED":    { "color": "red"        } } },
+            { "type": "value", "options": { "COMPLETED": { "color": "dark-green" } } },
+            { "type": "value", "options": { "UNKNOWN":   { "color": "gray"       } } }
+          ],
+          "color": { "mode": "thresholds" },
+          "links": [{
+            "title": "Board Detail",
+            "url": "/d/uta-board-detail-v1/uta-board-detail?var-slot_id=${__field.name}&var-log_filename=All&${__url_time_range}",
+            "targetBlank": true
+          }]
+        }
+      },
+      "targets": [{
+        "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
+        "rawSql": "SELECT block_started_at AS time, slot_id AS metric, block_status AS value FROM uta.interlude_snapshots WHERE block_started_at >= $__fromTime AND block_started_at <= $__toTime AND block_status != '' ORDER BY block_started_at",
+        "format": "timeseries"
+      }]
+    }
+  ]
+}

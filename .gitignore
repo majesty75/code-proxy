@@ -13,3 +13,6 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Tooling — local Claude Code MCP config, not for the repo
+.mcp.json

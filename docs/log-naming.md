@@ -81,9 +81,9 @@ Below is a detailed breakdown of each segment of the filename:
 
 ---
 
-### 🔹 **11. Production Step: `P09`**
+### 🔹 **11. Patch version: `P09`**
 
-- Refers to the **production milestone or phase**.
+- Refers to the **Patch version**.
 - ✅ _Purpose_: Tracks maturity level of the device.
 
 ---

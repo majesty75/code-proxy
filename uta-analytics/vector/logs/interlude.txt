@@ -1,0 +1,818 @@
+>>>BEGIN TL_interlude 	Apr 23 11:22:01			
+0000:00:03 *Turn Power ON
+0000:00:03 Lun: 0
+0000:00:03 
+0000:00:03 
+0000:00:03 
+0000:00:03 ### TL_Profile
+0000:00:03 
+0000:00:03 
+0000:00:03 ### GC Condition Bitmap : 0x200 
+0000:00:03 
+0000:00:03 
+0000:00:03 ## Read Current Temperature
+0000:00:03 DeviceCaseRoughTemperature	=		25    ,ThermalValue =      34(22), NANDDTS =   37
+0000:00:03 DeviceCaseRoughTemperature	=		25    ,ThermalValue =      34(0)
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Check Smart Report
+0000:00:03 Statistic UniproErrorCount : [0]
+0000:00:03 Statistic WAI : [1]
+0000:00:03 Statistic WAF : [1]
+0000:00:03 Statistic MlcMaximumEraseCount : [159]
+0000:00:03 Statistic MlcMinimumEraseCount : [41]
+0000:00:03 Statistic MlcAverageEraseCount : [64]
+0000:00:03 Statistic SlcMaximumEraseCount : [191]
+0000:00:03 Statistic SlcMinimumEraseCount : [74]
+0000:00:03 Statistic SlcAverageEraseCount : [163]
+0000:00:03 Statistic InitialBBCount : [34]
+0000:00:03 Statistic RTBBCount(Delayed) : [0]
+0000:00:03 Statistic RemainReservedBlock : [126]
+0000:00:03 Statistic TotalNandWriteBytes : [12820383207424]
+0000:00:03 Statistic TotalNandEraseBytes : [19615569149952]
+0000:00:03 Statistic ReadReclaimCount : [5]
+0000:00:03 Statistic FTLOpenCount : [15099]
+0000:00:03 Statistic nRootCxtAge : [0xffffffc0]
+0000:00:03 Statistic nDlmEraseCount : [9]
+0000:00:03 SLC Max-Min EC Value : [117]
+0000:00:03 MLC Max-Min EC Value : [118]
+0000:00:03 >>>Profile 191,74,163,159,41,64,34,0,15099,0,5,0,0,1030479,997282,0,14136,963
+0000:00:03 >>>HostType 11 (Root)
+0000:00:03 >>>DeviceInfo PSJ039.24.30.55.\PSL131.18.30.124.\PSJ039.24.23.55.\PSJ243.08.33.125.,
+0000:00:03 
+0000:00:03 [Secure Smart Report] Exception Top Level: 0x0 (Exception Occur (can be recovered by FW))
+0000:00:03 [Secure Smart Report] Exception SubCode: 0x39 (HIL_TMF)
+0000:00:03 Calculated WAF : 1 
+0000:00:03 Calculated WAI : 3 
+0000:00:03 
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Check EOL of Static Buffer Block
+0000:00:03 
+0000:00:03 [LOG] Sirius CTRL did not use Static SB : Static SB 0 ea :: Min 0, Max 0 
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Check RootCxt Age
+0000:00:03 Cur RootCxtAge : [0xffffffc0], Prev RootCxtAge : [0xffffffc0], Expect Age Gap : [0], Actual Age Gap : [0] Diff : [0]
+0000:00:03 SwpRPMBWC : [0] , PrevSwpRPMBWC : [0] , RepartitionCnt : [0] , PrevRepartition : [0] , RPMBKeyCnt : [0] , PrevRPMBKeyCnt : [0] , PropertyChange : [0] , PrevProperty : [0] 
+0000:00:03 
+0000:00:03 Reclaim VUC Enable. RootCxt Age Not Check.
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Check Health Descriptor
+0000:00:03 Length                  = [0x2d]
+0000:00:03 DescriptorType          = [0x9]
+0000:00:03 PreEOLInfo              = [0x1]
+0000:00:03 Device_LifeTime_EstA    = [0x1]
+0000:00:03 Device_LifeTime_EstB    = [0x1]
+0000:00:03 MaximumEraseCycleSlc     = [191]
+0000:00:03 MinimumEraseCycleSlc     = [74]
+0000:00:03 AverageEraseCycleSlc     = [163]
+0000:00:03 MaximumEraseCycleMlc     = [159]
+0000:00:03 MinimumEraseCycleMlc     = [41]
+0000:00:03 AverageEraseCycleMlc     = [64]
+0000:00:03 RootCxtAge          = [0xffffffc0]
+0000:00:03 DlmEraseCount       = [9]
+0000:00:03 SLC Avg EC ratio Higher.
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 [Log] FW BLK Type 0(MCB), Return SB 0 ~ 0  (SbCount 1)
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 [Log] FW BLK Type 1(ROOT or BOOT), Return SB 0 ~ 0  (SbCount 1)
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 [Log] FW BLK Type 2(DLM), Return SB 1 ~ 1  (SbCount 1)
+0000:00:03 RootDlmBadBlockCnt : 0
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 [Log] FW BLK Type 2(DLM), Return SB 1 ~ 1  (SbCount 1)
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  308 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  352 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  356 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  225 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  313 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  517 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  621 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  978 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  986 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  990 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  998 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK   19 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 0 Way 0 Die 0 BLK  311 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 1 Way 0 Die 0 BLK  308 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 1 Way 0 Die 0 BLK  441 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 1 Way 0 Die 0 BLK  649 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 1 Way 0 Die 0 BLK   18 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 1 Way 0 Die 0 BLK  311 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 1 Way 0 Die 0 BLK  763 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 1 Way 0 Die 0 BLK 1071 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK   16 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK  308 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK  609 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK   14 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK  314 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK  263 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK  311 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 0 Way 1 Die 0 BLK  367 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 Bad List[0] CH 1 Way 1 Die 0 BLK  308 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 1 Way 1 Die 0 BLK  636 BadType 0 (INIT) Actual Plane 0 Borrowed Plane 0
+0000:00:03 Bad List[0] CH 1 Way 1 Die 0 BLK   17 BadType 0 (INIT) Actual Plane 1 Borrowed Plane 1
+0000:00:03 Bad List[0] CH 1 Way 1 Die 0 BLK  938 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 1 Way 1 Die 0 BLK 1042 BadType 0 (INIT) Actual Plane 2 Borrowed Plane 2
+0000:00:03 Bad List[0] CH 1 Way 1 Die 0 BLK  311 BadType 0 (INIT) Actual Plane 3 Borrowed Plane 3
+0000:00:03 
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 [Log] FW BLK Type 2(DLM), Return SB 1 ~ 1  (SbCount 1)
+0000:00:03 
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 [Log] FW BLK Type 2(DLM), Return SB 1 ~ 1  (SbCount 1)
+0000:00:03 
+0000:00:03 CH[0] WAY[0] DIE[0] Plane[0] InitBB[3] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[0] WAY[0] DIE[0] Plane[1] InitBB[4] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[0] WAY[0] DIE[0] Plane[2] InitBB[4] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[0] WAY[0] DIE[0] Plane[3] InitBB[2] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[0] WAY[1] DIE[0] Plane[0] InitBB[2] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[0] WAY[1] DIE[0] Plane[1] InitBB[1] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[0] WAY[1] DIE[0] Plane[2] InitBB[2] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[0] WAY[1] DIE[0] Plane[3] InitBB[3] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[0] DIE[0] Plane[0] InitBB[1] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[0] DIE[0] Plane[1] InitBB[2] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[0] DIE[0] Plane[2] InitBB[1] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[0] DIE[0] Plane[3] InitBB[3] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[1] DIE[0] Plane[0] InitBB[2] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[1] DIE[0] Plane[1] InitBB[1] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[1] DIE[0] Plane[2] InitBB[2] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 CH[1] WAY[1] DIE[0] Plane[3] InitBB[1] RTBB[0] Delayed[0] EOLRatio[0]
+0000:00:03 Calculate EOL Value.EOL : [0]
+0000:00:03 EOL Value.         Expect : [1], Actual : [1].
+0000:00:03 DeviceLifeTimeEstA Expect : [1], Acutal : [1].
+0000:00:03 DeviceLifeTimeEstB Expect : [1], Acutal : [1].
+0000:00:03 
+0000:00:03 [LOG] Check Root/Dlm LifeTimeEst -> Caculate Root(1) / Dlm(1) 
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Check Extra Smart Report
+0000:00:03 length =                          32(0x20)
+0000:00:03 Descriptor Type =                 11(0xb)
+0000:00:03 ThermalValue =                    36(0x24)
+0000:00:03 Boot Context update count =       63(0x3f)
+0000:00:03 Latest Boot Context update type = Update Host Meta(0x2)
+0000:00:03 Runtime overlay loading count =   110588134(0x69770e6)
+0000:00:03 Free Block Cnt =   175
+0000:00:03 For zone 0, current VPC is 15728640
+0000:00:03 For zone 1, current VPC is 12288
+0000:00:03 
+0000:00:03 
+0000:00:03 ### TL_INFO
+0000:00:03 =================================
+0000:00:03 DEVICE : V8_TLC_512Gb_4P
+0000:00:03 =================================
+0000:00:03 UTF HostType                     = 0xb (Root)
+0000:00:03 UTF MaxBlockCount                = 0x400
+0000:00:03 UTF NumberOfTaskManagementSlots  = 0x4
+0000:00:03 UTF NumberOfTransferSlots        = 0x20
+0000:00:03 [Prev] _hpb 0, _hpbver 0, gnHpbSpecType 0 [Cur] _hpb 0, _hpbver 0, gnHpbSpecType 0
+0000:00:03 
+0000:00:03 ==========================
+0000:00:03 --- NO REDUCTION MODE ---
+0000:00:03 ==========================
+0000:00:03 LU[0]  
+0000:00:03 Type                      = MLC / TLC
+0000:00:03 BootLunId                 = 0
+0000:00:03 LogicalBlockSize          = 0x1000
+0000:00:03 Length                    = 0xda1f, 0x3687c00 (223356.000 MB)
+0000:00:03 Provisioning              = 0x2
+0000:00:03 Data Reliability          = 0x1
+0000:00:03 Write Protect             = 0
+0000:00:03 TurboWriteBufferUnits     = 0x500000 (20480.000 MB)
+0000:00:03 LU[0x1]  
+0000:00:03 Type                      = SLC
+0000:00:03 BootLunId                 = 0x1
+0000:00:03 LogicalBlockSize          = 0x1000
+0000:00:03 Length                    = 0x3, 0x400 (4.000 MB)
+0000:00:03 Provisioning              = 0x2
+0000:00:03 Data Reliability          = 0x1
+0000:00:03 Write Protect             = 0
+0000:00:03 LU[0x2]  
+0000:00:03 Type                      = SLC
+0000:00:03 BootLunId                 = 0x2
+0000:00:03 LogicalBlockSize          = 0x1000
+0000:00:03 Length                    = 0x3, 0x400 (4.000 MB)
+0000:00:03 Provisioning              = 0x2
+0000:00:03 Data Reliability          = 0x1
+0000:00:03 Write Protect             = 0
+0000:00:03 LU[0x3]  
+0000:00:03 Type                      = SLC
+0000:00:03 BootLunId                 = 0
+0000:00:03 LogicalBlockSize          = 0x1000
+0000:00:03 Length                    = 0x639, 0x84c00 (2124.000 MB)
+0000:00:03 Provisioning              = 0x2
+0000:00:03 Data Reliability          = 0x1
+0000:00:03 Write Protect             = 0
+0000:00:03 LU[0x4]  
+0000:00:03 Type                      = MLC / TLC
+0000:00:03 BootLunId                 = 0
+0000:00:03 LogicalBlockSize          = 0x1000
+0000:00:03 Length                    = 0xe00, 0x380000 (14336.000 MB)
+0000:00:03 Provisioning              = 0x2
+0000:00:03 Data Reliability          = 0x1
+0000:00:03 Write Protect             = 0
+0000:00:03 LEGACY RPMB LU[0xc4]
+0000:00:03 LogicalBlockSize          = 0x100
+0000:00:03 Length                    = 0x10000 (16.000 MB)
+0000:00:03 RPMB Region0 Size         = 12288KB (0xc000)
+0000:00:03 RPMB Region3 Size         = 4096KB (0x4000)
+0000:00:03 
+0000:00:03 RPMB Region 0 WriteCounter = 0xc005
+0000:00:03 RPMB Region 3 WriteCounter = 0x40c6
+0000:00:03 
+0000:00:03 [Firmware OEM] GEN FW
+0000:00:03 SmartCustomerReport Version = 11
+0000:00:03 SmartCustomerReport Length = 256
+0000:00:03 SmartCustomerReport OEMID = 1
+0000:00:03 SmartCustomerReport FWReleaseDate = 0
+0000:00:03 SmartCustomerReport SLC EC = Max 191 / Min 74 / Avg 163
+0000:00:03 SmartCustomerReport MLC EC = Max 159 / Min 41 / Avg 64
+0000:00:03 SmartCustomerReport ReadReclaimCount = 5
+0000:00:03 SmartCustomerReport InitialBadBlock = 34
+0000:00:03 SmartCustomerReport RemainReservedBlock = 126
+0000:00:03 SmartCustomerReport FWTrialCount = 0
+0000:00:03 SmartCustomerReport WrittenData = 997282
+0000:00:03 SmartCustomerReport FTLOpenCount = 15099
+0000:00:03 SmartCustomerReport FirmwareSuccessCount = 0
+0000:00:03 SmartCustomerReport ReadData = 1030479
+0000:00:03 SmartCustomerReport LVDFDetectCount = 0
+0000:00:03 SmartCustomerReport RTBBCount = 0
+0000:00:03 SmartCustomerReport ReceivedPonCount = 14136
+0000:00:03 SmartCustomerReport ReceivedSpoCount = 963
+0000:00:03 SmartCustomerReport SramEccCorrctionCount = 0
+0000:00:03 SmartCustomerReport RTBB Block Count = 0 / PSF Block Count = 0 / ESF Block Count = 0
+0000:00:03 SmartCustomerReport PreloadedWrittenSizeForTotalLifeCycle = 0 
+0000:00:03 SmartCustomerReport PreloadedWrittenSizeOverPsaDataSize = 0 
+0000:00:03 SmartCustomerReport WrittenDataSizeForSensitiveLU = 15728640 
+0000:00:03 SmartCustomerReport WrittenDataSizeExceptSLCTypeArea = 14291456 
+0000:00:03 SmartCustomerReport CurrentAvailablePreloadingDataSize = 0 
+0000:00:03 SmartCustomerReport RemainingDataSizePreloadedForMigration = 0 
+0000:00:03 SmartCustomerReport StreamID0DataUnitsWritten = 0 
+0000:00:03 SmartCustomerReport StreamID1DataUnitsWritten = 0 
+0000:00:03 SmartCustomerReport StreamID2DataUnitsWritten = 0 
+0000:00:03 SmartCustomerReport StreamID3DataUnitsWritten = 0 
+0000:00:03 SmartCustomerReport StreamID4DataUnitsWritten = 0 
+0000:00:03 SmartCustomerReport StreamID5DataUnitsWritten = 0 
+0000:00:03 SmartCustomerReport StreamHotWarmDataRate = 0 
+0000:00:03 SmartCustomerReport StreamColdDataRate = 0 
+0000:00:03 SmartCustomerReport FWExceptionTopLevel = 0x0 (Exception Occur (can be recovered by FW))
+0000:00:03 SmartCustomerReport FWExceptionSubcode = 0x39 (HIL_TMF)
+0000:00:03 SmartCustomerReport EfuseEcid0 = 0x773e4628
+0000:00:03 SmartCustomerReport EfuseEcid1 = 0x69001e56
+0000:00:03 SmartCustomerReport DttEnterTotalCount = 0x0 
+0000:00:03 SmartCustomerReport DttNormalEnterCount = 0x0 
+0000:00:03 SmartCustomerReport DttLightEnterCount = 0x0 
+0000:00:03 SmartCustomerReport DttHeavyEnterCount = 0x0 
+0000:00:03 SmartCustomerReport DttCriticalEnterCount = 0x0 
+0000:00:03 SmartCustomerReport EvtVersion = 0x1 
+0000:00:03 SmartCustomerReport FWExceptionSubCodeBitmap0_31 = 0x0 
+0000:00:03 SmartCustomerReport FWExceptionSubCodeBitmap32_63 = 0x12000000 
+0000:00:03 SmartCustomerReport FWExceptionSubCodeBitmap64_95 = 0x0 
+0000:00:03 SmartCustomerReport FWExceptionSubCodeBitmap96_127 = 0x0 
+0000:00:03 
+0000:00:03 Statistic RunTimeBadBlock = 0
+0000:00:03 Free Block Cnt  = xLC 175 / SLC 0
+0000:00:03 
+0000:00:03 [Secure Smart Report] Exception Top Level: 0x0 (Exception Occur (can be recovered by FW))
+0000:00:03 [Secure Smart Report] Exception SubCode: 0x39 (HIL_TMF)
+0000:00:03 >>>Profile 191,74,163,159,41,64,34,0,15099,0,5,0,0,1030479,997282,0,14136,963
+0000:00:03 >>>HostType 11 (Root)
+0000:00:03 SmartDeviceInformation FWVersion         = 0x90000
+0000:00:03 SmartDeviceInformation RomCodeVersion    = 0x10000
+0000:00:03 SmartDeviceInformation ControllerVersion = 0x4b4a5801
+0000:00:03 SmartDeviceInformation.ControllerEfuse0  = 0x773e4628
+0000:00:03 SmartDeviceInformation.ControllerEfuse1  = 0x69001e56
+0000:00:03 SIRIUS EVT1 (EVT2 by Ctrl Reg)
+0000:00:03 UFS Spec 3.1 
+0000:00:03 Device : V8_TLC_512Gb_4P
+0000:00:03 eFuse Value not Valid !!
+0000:00:03 
+0000:00:03 Temperature Notification
+0000:00:03 DeviceCaseRoughTemperature	=		28
+0000:00:03 DeviceTooHighTempBoundary	=		85
+0000:00:03 DeviceTooLowTempBoundary	=		-25
+0000:00:03 ShutDownNotiLevel		=		0
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 
+0000:00:03 [ MCB CH 0 BLK 0 ]
+0000:00:03 [ Format Confirm ]
+0000:00:03 Signature : 0x46534655 (Correct!)
+0000:00:03 1stRootCxtBlock : 8 / 1stDebugLogBlock : 16
+0000:00:03 bIsWrittenFormatConfirm : 0x1
+0000:00:03 FirmwareVersion : 0x90000 (P09 RC00 FW00)
+0000:00:03 FwBuildTime : 0x10595c2
+0000:00:03 
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 
+0000:00:03 [ MCB CH 0 BLK 1 ]
+0000:00:03 [ Format Confirm ]
+0000:00:03 Signature : 0x46534655 (Correct!)
+0000:00:03 1stRootCxtBlock : 8 / 1stDebugLogBlock : 16
+0000:00:03 bIsWrittenFormatConfirm : 0x1
+0000:00:03 FirmwareVersion : 0x90000 (P09 RC00 FW00)
+0000:00:03 FwBuildTime : 0x10595c2
+0000:00:03 
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 
+0000:00:03 [ MCB CH 1 BLK 0 ]
+0000:00:03 [ Format Confirm ]
+0000:00:03 Signature : 0x46534655 (Correct!)
+0000:00:03 1stRootCxtBlock : 8 / 1stDebugLogBlock : 16
+0000:00:03 bIsWrittenFormatConfirm : 0x1
+0000:00:03 FirmwareVersion : 0x90000 (P09 RC00 FW00)
+0000:00:03 FwBuildTime : 0x10595c2
+0000:00:03 
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 
+0000:00:03 [ MCB CH 1 BLK 1 ]
+0000:00:03 [ Format Confirm ]
+0000:00:03 Signature : 0x46534655 (Correct!)
+0000:00:03 1stRootCxtBlock : 8 / 1stDebugLogBlock : 16
+0000:00:03 bIsWrittenFormatConfirm : 0x1
+0000:00:03 FirmwareVersion : 0x90000 (P09 RC00 FW00)
+0000:00:03 FwBuildTime : 0x10595c2
+0000:00:03 
+0000:00:03 [Get_DeviceDensity] Density : 256 GB
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 
+0000:00:03 [LOG] Patch Confirm Page 139, Format Confirm Page 141 (Ctrl 7)
+0000:00:03 [LOG] Ch 0 Block 0 - MCB Reclaim Count 0
+0000:00:03 [LOG] Ch 0 Block 1 - MCB Reclaim Count 0
+0000:00:03 [LOG] Ch 1 Block 0 - MCB Reclaim Count 0
+0000:00:03 [LOG] Ch 1 Block 1 - MCB Reclaim Count 0
+0000:00:03 
+0000:00:03 [LOG] Reclaim Count : 0...[Get_DeviceDensity] Density : 256 GB
+0000:00:03 [PASS][CH 0][BLK 0] Patch Header Signature (Expect : 0x55465348, Actual : 0x55465348)
+0000:00:03 
+0000:00:03 [LOG] Patch Confirm Page 139, Format Confirm Page 141 (Ctrl 7)
+0000:00:03 [LOG] Ch 0 Block 0 - MCB Reclaim Count 0
+0000:00:03 [LOG] Ch 0 Block 1 - MCB Reclaim Count 0
+0000:00:03 [LOG] Ch 1 Block 0 - MCB Reclaim Count 0
+0000:00:03 [LOG] Ch 1 Block 1 - MCB Reclaim Count 0
+0000:00:03 
+0000:00:03 [LOG] Reclaim Count : 0...
+0000:00:03 
+0000:00:03 [LOG] MCB RR Count Main[ 0], Backup[ 0] 
+0000:00:03 
+0000:00:03 _controller : 7 , _density : 256 , _han : 0 
+0000:00:03 [__SetCMDFunctionPointer__] Set Function origin
+0000:00:03 Legacy RPMB Region3 size = 4096KB (gnMaxTestInfoCnt = 1024)
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Check Recovery Log
+0000:00:03 
+0000:00:03 [ DEBUG LOG NAMU ]
+0000:00:03 ConfirmMark : 0x4e414d55
+0000:00:03 PlatformVersion : 0x1000000
+0000:00:03 DebugLogVersion : 0x000d
+0000:00:03 FRMCallCount : 4
+0000:00:03 TotalLogBufferByte : 16384
+0000:00:03 
+0000:00:03 SuccessLogCount : 0
+0000:00:03 FailLogCount : 1
+0000:00:03 ReclaimLogCount : 0
+0000:00:03 RincCallCount : 2
+0000:00:03 RincReclaimCount : 0
+0000:00:03 CleanPageRetryCount : 1
+0000:00:03 EraseStatusFailCount : 0
+0000:00:03 ProgramStatusFailCount : 0
+0000:00:03 IdrFailLogCount : 0
+0000:00:03 ConfirmContextAge : 0x00000000
+0000:00:03 RootContextAge : 0x00000000
+0000:00:03 DlmContextAge : 0x00000000
+0000:00:03 IdrCountInRecovery : 0
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [Correction Fail Log Entry]
+0000:00:03 ************************************************
+0000:00:03   FRM Call Count : 2, Physical Addr [ CH 0 CE 0 DIE 0 BLK 878, PG 927 ], QueueId : 0, PageGroupId : 5, RecoveryRepeatCount : 0, bPreScanExecuted : 0, bApplyLbaFailRetry : 1 
+0000:00:03      [Info] RecoveryLevel : 3 (ScanLastWL), IoType : 3 (SlcOnly)
+0000:00:03 
+0000:00:03   [UECC Bitmap]
+0000:00:03     [Plane 0] Original : 0x0001, Corrected : 0x0000 
+0000:00:03 
+0000:00:03   [Clean Bitmap]
+0000:00:03     [Plane 0] 0x0001
+0000:00:03 
+0000:00:03   [Algorithm Info]
+0000:00:03  * Algorithm [1] History [2] SHPLRE [3] PDT [4] LRE 
+0000:00:03      NumberOfAlgorithm : 4, ReadFailPattern : 0x0 
+0000:00:03 
+0000:00:03     <Algorithm 0> 
+0000:00:03     [Plane 0] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 1] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 2] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 3] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     stReadLevelInfo : (127, 127, 127, 127) (127, 127, 127, 127) (127, 127, 127, 127) (127, 127, 127, 127)
+0000:00:03     DecodingType 255 / 255 / 255 / 255 
+0000:00:03     AsdotOffset : (0, 0) (0, 0) (0, 0) (0, 0)
+0000:00:03 
+0000:00:03     <Algorithm 1> 
+0000:00:03     [Plane 0] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 1] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 2] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 3] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     stReadLevelInfo : (127, 127, 127, 127) (127, 127, 127, 127) (127, 127, 127, 127) (127, 127, 127, 127)
+0000:00:03     DecodingType 255 / 255 / 255 / 255 
+0000:00:03     AsdotOffset : (0, 0) (0, 0) (0, 0) (0, 0)
+0000:00:03 
+0000:00:03     <Algorithm 2> 
+0000:00:03     [Plane 0] AlgUserBitMap 0x1, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 1] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 2] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 3] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     stReadLevelInfo : (216, 0, 0, 127) (20, 0, 0, 127) (236, 0, 0, 127) (196, 0, 0, 127)
+0000:00:03     DecodingType 255 / 255 / 255 / 255 
+0000:00:03     AsdotOffset : (0, 0) (0, 0) (0, 0) (0, 0)
+0000:00:03 
+0000:00:03     <Algorithm 3> 
+0000:00:03     [Plane 0] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 1] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 2] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     [Plane 3] AlgUserBitMap 0xFF, AlgMetaBitMap 0xFF 
+0000:00:03     stReadLevelInfo : (127, 127, 127, 127) (127, 127, 127, 127) (127, 127, 127, 127) (127, 127, 127, 127)
+0000:00:03     DecodingType 255 / 255 / 255 / 255 
+0000:00:03     AsdotOffset : (0, 0) (0, 0) (0, 0) (0, 0)
+0000:00:03 
+0000:00:03 
+0000:00:03   Field          [Plane 0] Offset 0, Count 1 
+0000:00:03   PlaneEccInfo   [Plane 0] 0x0 
+0000:00:03   OrgPlaneStatus [Plane 0] 0x10000  0x3ff000  0xffff0002  0x0 
+0000:00:03 
+0000:00:03 [Algorithm Hit Count Log] History : 0 / SHPLRE : 0 / PDT : 0 / LRE : 0 
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [RINC Log Entry]
+0000:00:03 ************************************************
+0000:00:03 FRM RINC Call Count : 2
+0000:00:03 FRM RINC Reclaim Count : 0
+0000:00:03 ************************************************
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [RINC Spot Log]
+0000:00:03 ************************************************
+0000:00:03 Current RINC Interval : 9720, Current Erase Count : 159
+0000:00:03 FRM Call Count : 4, Ch : 0, Chip : 0, Die : 0, Blk : 877, Page : 927, IoType : 3 (SlcOnly), LastProgramOrder : 927, Result : 0 (NoReclaim)
+0000:00:03 OpenModule : 934, UpperWLModule : 918, LowerWLModule : 65535, WeakWL1Module : 1412, WeakWL2Module : 596, ReclaimDetectModule : 65535 (Invalid)
+0000:00:03 OpenReadLevel : 900, OpenOffcellCnt : 0, OpenStandardOffcellCnt : 2300
+0000:00:03 WeakReadLevel : 900, WeakOffcellCnt : 0, WeakStandardOffcellCnt : 2300
+0000:00:03 UpperWLCheckType : 0(ECC Decoding), LowerWLCheckType : 255(Invalid), WeakWL1CheckType : 1(Free), WeakWL2CheckType : 0(ECC Decoding)
+0000:00:03 
+0000:00:03 [RINC Algorithm Hit Count Log] History : 0 / Normal : 6 / SHPLRE : 0 / PDT : 0
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [ECC Error Info]
+0000:00:03 ************************************************
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [Clean Log Entry]
+0000:00:03 ************************************************
+0000:00:03 [Entry 00] FRM Call Count 1 Chip 0 Plane 1 Block 0878 Page 0927 FreePageHistory 0x1 
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [Erase Status Fail Log Entry]
+0000:00:03 ************************************************
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [Program Status Fail Log Entry]
+0000:00:03 ************************************************
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [System Power State]
+0000:00:03 ************************************************
+0000:00:03 SystemPowerState 3 (NCORE_BOOTING_SUCCESS)
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [LVDF]
+0000:00:03 ************************************************
+0000:00:03 LvdfRecoveryState 0 (NONE)
+0000:00:03 DetectIdleLvdfIsrCount 0 
+0000:00:03 SuccessIdleLvdfIsrCount 0 
+0000:00:03 SkippedIdleLvdfIsrCount 0 
+0000:00:03 DetectBusyLvdfIsrCount 0 
+0000:00:03 SuccessBusyLvdfIsrCount 0 
+0000:00:03 DetectIdrFlagCount 0 
+0000:00:03 SuccessIdrFlagCount 0 
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [SPS State]
+0000:00:03 ************************************************
+0000:00:03 NcoreSpsState 0 (RUN)
+0000:00:03 EnterIdleNcoreSpsCount 1721 
+0000:00:03 ExitIdleNcoreSpsCount 1720 
+0000:00:03 EnterBusyNcoreSpsCount 0 
+0000:00:03 ExitBusyNcoreSpsCount 0 
+0000:00:03 
+0000:00:03 ReadIdCount 9
+0000:00:03 
+0000:00:03 PowerLvdfEventCount 5
+0000:00:03 ************************************************
+0000:00:03 [Power LVDF Event Log]
+0000:00:03 ************************************************
+0000:00:03 [00] CoreID 05 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [01] CoreID 05 State 1(FCORE_BOOTING_SUCCESS)
+0000:00:03 [02] CoreID 08 State 2(NCORE_BOOTING_PROCESSING)
+0000:00:03 [03] CoreID 08 State 0(NONE)
+0000:00:03 [04] CoreID 08 State 3(NCORE_BOOTING_SUCCESS)
+0000:00:03 [05] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [06] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [07] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [08] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [09] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [10] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [11] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [12] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [13] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [14] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 [15] CoreID 00 State 0(FCORE_BOOTING_MAIN_PROCESS)
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [IDR Fail Log]
+0000:00:03 ************************************************
+0000:00:03 
+0000:00:03 ReadRecoveryCount 1
+0000:00:03 
+0000:00:03 FailChipForUibDump 0
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [Intensive Search Management Info Summary]
+0000:00:03 ************************************************
+0000:00:03 Iteration Count 165/165 (Cnt/Max)
+0000:00:03 Start Sb Index 2, Cur Sb Index 1(SB 23)
+0000:00:03 Page Group 0, First Xlc Wordline 0
+0000:00:03 Search Type Count: SkipHistoryUpdated[0] SkipFree[9] SkipXlcAllFree[0] SearchAtDefaultRead[156] SearchAtShpLre[0] 
+0000:00:03 Total Intensive Search SB Count : 55
+0000:00:03 
+0000:00:03 ************************************************
+0000:00:03 [Intensive Search Debug Info for Logging Block]
+0000:00:03 ************************************************
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Check iNFA Log
+0000:00:03 
+0000:00:03 [LOG] Do Not Setup Read iNFA Log
+0000:00:03 
+0000:00:03 
+0000:00:03 [LOG] Do Not Setup Read iNFA Log
+0000:00:03 
+0000:00:03 
+0000:00:03 WAI : 1, WAF : 1
+0000:00:03 EC SLC Max : 191, Min : 74, Avg : 163
+0000:00:03 EC MLC Max : 159, Min : 41, Avg : 64
+0000:00:03 InitBB : 34, RTBB : 0, RB : 126
+0000:00:03 TotalNandWriteBytes : 12820383207424
+0000:00:03 TotalNandEraseBytes : 19615569149952
+0000:00:03 ReadReclaimCount : 5
+0000:00:03 FTLOpenCount : 15099
+0000:00:03 SlcMaxEC-SlcMinEC : 117
+0000:00:03 MlcMaxEC-MlcMinEC : 118
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Do Check Need to TurboWrite Flush
+0000:00:03 ============================== H-Core ==============================
+0000:00:03 TWSignature : 0xa831b30c 
+0000:00:03 TWVersion : 0x203 
+0000:00:03 TWProvisioningCount : 0 
+0000:00:03 TWFlushEnableSetCount : 1008 
+0000:00:03 TWFlushEnableClearCount : 1044 
+0000:00:03 TWFlushStatusReadCount : 84 
+0000:00:03 StatusBeforetheLastTWFlushStatus : 0x3 
+0000:00:03 TWFlushDuringHibernationEnterSetCount : 1004 
+0000:00:03 TWFlushDuringHibernationEnterClearCount : 1005 
+0000:00:03 MaxAvailableBufferCount : 0x100000 (1048576) 4096MB 
+0000:00:03 CurrentAvailableBufferCount : 0xf4f00 (1003264) 3919MB 
+0000:00:03 FlushOnBitmap : 0 
+0000:00:03 IPSRetryCount : 0 
+0000:00:03 HibernationRetryCount : 99986659 
+0000:00:03 TWEnableSetCount : 26555 
+0000:00:03 TWEnableClearCount : 26564 
+0000:00:03 TWCommandHitCount : 1043750 
+0000:00:03 TWCommandMissCount : 68051 
+0000:00:03 TWTotalWrittenSize : 0x8427bb5 (138574773) 541307MB 
+0000:00:03 TWTotalMissWrittenSize : 0x2f0b30 (3083056) 12043MB 
+0000:00:03 ============================== F-Core ==============================
+0000:00:03 StaticSBMaxCount : 0 
+0000:00:03 DynamicSBMaxCount : 61 
+0000:00:03 StaticFBCount : 0 
+0000:00:03 DynamicFBCount : 13 
+0000:00:03 SlcDBCount(TWDBCount) : 0 
+0000:00:03 TWBNoFlushABC : 0x6ea00 (453120) 1770MB 
+0000:00:03 TWBTargetABC : 0x91600 (595456) 2326MB 
+0000:00:03 FTLHostNoFlushTWBufferCnt : 0xfc800 (1034240) 4040MB 
+0000:00:03 CurrentNoFlushTWBufferCnt : 0x6ea00 (453120) 1770MB 
+0000:00:03 TWMaxNoFlushSBCnt : 11 
+0000:00:03 TWCurNoFlushSBCnt : 5 
+0000:00:03 ResizedTWBuffer : 0x100000 (1048576) 4096MB 
+0000:00:03 TWBFullCount : 1 
+0000:00:03 TWBResizeNotAvailable : 0 (0) 
+0000:00:03 ====================================================================
+0000:00:03 [SSIR: DBG ] Flush Timeout has been set to [900]...
+0000:00:03 
+0000:00:03 WAI : 1, WAF : 1
+0000:00:03 EC SLC Max : 191, Min : 74, Avg : 163
+0000:00:03 EC MLC Max : 159, Min : 41, Avg : 64
+0000:00:03 InitBB : 34, RTBB : 0, RB : 126
+0000:00:03 TotalNandWriteBytes : 12820383207424
+0000:00:03 TotalNandEraseBytes : 19615569149952
+0000:00:03 ReadReclaimCount : 5
+0000:00:03 FTLOpenCount : 15099
+0000:00:03 SlcMaxEC-SlcMinEC : 117
+0000:00:03 MlcMaxEC-MlcMinEC : 118
+0000:00:03 
+0000:00:03 WAI : 1, WAF : 1
+0000:00:03 EC SLC Max : 191, Min : 74, Avg : 163
+0000:00:03 EC MLC Max : 159, Min : 41, Avg : 64
+0000:00:03 InitBB : 34, RTBB : 0, RB : 126
+0000:00:03 TotalNandWriteBytes : 12820383207424
+0000:00:03 TotalNandEraseBytes : 19615569149952
+0000:00:03 ReadReclaimCount : 5
+0000:00:03 FTLOpenCount : 15099
+0000:00:03 SlcMaxEC-SlcMinEC : 117
+0000:00:03 MlcMaxEC-MlcMinEC : 118
+0000:00:03 [SKIP] SKIP TW NoFlush Set (gbUseResizeNoFlush 0)
+0000:00:03 
+0000:00:03 WAI : 1, WAF : 1
+0000:00:03 EC SLC Max : 191, Min : 74, Avg : 163
+0000:00:03 EC MLC Max : 159, Min : 41, Avg : 64
+0000:00:03 InitBB : 34, RTBB : 0, RB : 126
+0000:00:03 TotalNandWriteBytes : 12820383207424
+0000:00:03 TotalNandEraseBytes : 19615569149952
+0000:00:03 ReadReclaimCount : 5
+0000:00:03 FTLOpenCount : 15099
+0000:00:03 SlcMaxEC-SlcMinEC : 117
+0000:00:03 MlcMaxEC-MlcMinEC : 118
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Test Info
+0000:00:03 -> Cur Value _gbSelectorToggleUse: 0, _gbSelectorToggle: 1, _selector_toggle: 0, _gulChangeIssueCnt: 0, _selector: 1
+0000:00:03 Free Block Cnt : 175
+0000:00:03 
+0000:00:03 
+0000:00:03 ### Execute Abort Task Set for DLM Store
+0000:00:03 Abort Task Set Response: 0
+0000:00:03 
+0000:00:03 
+0000:00:03 ### SID
+0000:00:03 
+0000:00:03 [Check_WAF_WAI]
+0000:00:03 WAF : 1 
+0000:00:03 WAI : 3 
+0000:00:03 Statistic WAF : 1
+0000:00:03 Statistic WAI : 1
+0000:00:03 SSR_TLC_AVG_EC : 64 
+0000:00:03 SSR_TLC_MAX_EC : 159 
+0000:00:03 SSR_WrittenData : 997282 
+0000:00:03 Density : 256GB 
+0000:00:03 
+0000:00:03 [SID_GetDebugInfo] Enter
+0000:00:03 ============================== H-Core ==============================
+0000:00:03 nSIDVersion					: 0x101 
+0000:00:03 ============================== F-Core ==============================
+0000:00:03 nSID0WriteCount				: 0x95B29587 (10046035484 KB) 
+0000:00:03 nSID1WriteCount				: 0x0 (0 KB) 
+0000:00:03 nSID2WriteCount				: 0x0 (0 KB) 
+0000:00:03 nSID3WriteCount				: 0x0 (0 KB) 
+0000:00:03 nSID4WriteCount				: 0x0 (0 KB) 
+0000:00:03 nSID5WriteCount				: 0x0 (0 KB) 
+0000:00:03 ====================================================================
+0000:00:03 SmartCustomerReport SSR Version - Minor      = 11
+0000:00:03 SmartCustomerReport SSR Version - Major      = 2
+0000:00:03 SmartCustomerReport Length                   = 256
+0000:00:03 SmartCustomerReport OEMID                    = 1
+0000:00:03 SmartCustomerReport FWReleaseDate            = 0
+0000:00:03 SmartCustomerReport StreamID0WrittenData     = 0 (0x0)
+0000:00:03 SmartCustomerReport StreamID1WrittenData     = 0 (0x0)
+0000:00:03 SmartCustomerReport StreamID2WrittenData     = 0 (0x0)
+0000:00:03 SmartCustomerReport StreamID3WrittenData     = 0 (0x0)
+0000:00:03 SmartCustomerReport StreamID4WrittenData     = 0 (0x0)
+0000:00:03 SmartCustomerReport StreamID5WrittenData     = 0 (0x0)
+0000:00:03 SmartCustomerReport StreamedHotWarmDataRate  = 0.0%
+0000:00:03 SmartCustomerReport StreamedColdDataRate     = 0.0%
+0000:00:03 
+0000:00:03 
+0000:00:03 ### PSA
+0000:00:03 
+0000:00:03 ### DTT Parameter Read
+0000:00:03 ========================== DTT Parameter ==========================
+0000:00:03 Current Level[0] : 0 
+0000:00:03 Current Level[1] : 0 
+0000:00:03 Current Level[2] : 0 
+0000:00:03 Current Level[3] : 0 
+0000:00:03 Current Level[4] : 0 
+0000:00:03 Current Level[5] : 0 
+0000:00:03 Current Level[6] : 0 
+0000:00:03 Current Level[7] : 0 
+0000:00:03 Current Level[8] : 0 
+0000:00:03 Current Level[9] : 0 
+0000:00:03 Current Level[10] : 0 
+0000:00:03 Current Level[11] : 0 
+0000:00:03 Current Level[12] : 0 
+0000:00:03 Current Level[13] : 0 
+0000:00:03 Current Level[14] : 0 
+0000:00:03 Current Level[15] : 0 
+0000:00:03 Change Level Time[0] : 0 us
+0000:00:03 Change Level Time[1] : 0 us
+0000:00:03 Change Level Time[2] : 0 us
+0000:00:03 Change Level Time[3] : 0 us
+0000:00:03 Change Level Time[4] : 0 us
+0000:00:03 Change Level Time[5] : 0 us
+0000:00:03 Change Level Time[6] : 0 us
+0000:00:03 Change Level Time[7] : 0 us
+0000:00:03 Change Level Time[8] : 0 us
+0000:00:03 Change Level Time[9] : 0 us
+0000:00:03 Change Level Time[10] : 0 us
+0000:00:03 Change Level Time[11] : 0 us
+0000:00:03 Change Level Time[12] : 0 us
+0000:00:03 Change Level Time[13] : 0 us
+0000:00:03 Change Level Time[14] : 0 us
+0000:00:03 Change Level Time[15] : 0 us
+0000:00:03 DTT Enter Io Count[0] : 0 
+0000:00:03 DTT Enter Io Count[1] : 0 
+0000:00:03 DTT Enter Io Count[2] : 0 
+0000:00:03 DTT Enter Io Count[3] : 0 
+0000:00:03 DTT Enter Io Count[4] : 0 
+0000:00:03 DTT Enter Io Count[5] : 0 
+0000:00:03 DTT Enter Io Count[6] : 0 
+0000:00:03 DTT Enter Io Count[7] : 0 
+0000:00:03 DTT Enter Io Count[8] : 0 
+0000:00:03 DTT Enter Io Count[9] : 0 
+0000:00:03 DTT Enter Io Count[10] : 0 
+0000:00:03 DTT Enter Io Count[11] : 0 
+0000:00:03 DTT Enter Io Count[12] : 0 
+0000:00:03 DTT Enter Io Count[13] : 0 
+0000:00:03 DTT Enter Io Count[14] : 0 
+0000:00:03 DTT Enter Io Count[15] : 0 
+0000:00:03 DTT Logging Index : 0 
+0000:00:03 DTT Enter Total Count : 0 
+0000:00:03 DTT Normal Enter Count : 0 
+0000:00:03 DTT Light Enter Count : 0 
+0000:00:03 DTT Heavy Enter Count : 0 
+0000:00:03 DTT Meltdown Enter Count : 0 
+0000:00:03 Real Temperature : 0 
+0000:00:03 DTT Disable For Vendor : 0 
+0000:00:03 DTT Enter Start Time : 0 us
+0000:00:03 ====================================================================
+0000:00:03 DmeMibPA_ConnectedRxDataLanes = 2
+0000:00:03 DmeMibPA_ConnectedTxDataLanes = 2
+0000:00:03 DmeMibPA_MaxRxHSGear = 4
+0000:00:03 Peer DmeMibPA_MaxRxHSGear = 4
+0000:00:03 ## Set to gear 4 / lane 2 
+0000:00:03 PMC_Result= 0 Lanes= 0x2, Gear= 0x4, Mode= 0x11, Series= 0x2
+0000:00:03 DmeGetResult= 0, DmeMibPA_PWRMode= 0x11
+0000:00:03 DmePeerGetResult= 0, DmeMibPA_PWRMode= 0x11
+0000:00:03 
+0000:00:03 
+0000:00:03  ### Data Transfer Lenght (_transferLength) Set 0x80 
+0000:00:03 [DEBUG_BKOPS] Set URGENT_BKOPS_EN (Current Thermal: 36)
+0000:00:03 
+0000:00:03 WAI : 1, WAF : 1
+0000:00:03 EC SLC Max : 191, Min : 74, Avg : 163
+0000:00:03 EC MLC Max : 159, Min : 41, Avg : 64
+0000:00:03 InitBB : 34, RTBB : 0, RB : 126
+0000:00:03 TotalNandWriteBytes : 12820385304576
+0000:00:03 TotalNandEraseBytes : 19615569149952
+0000:00:03 ReadReclaimCount : 5
+0000:00:03 FTLOpenCount : 15099
+0000:00:03 SlcMaxEC-SlcMinEC : 117
+0000:00:03 MlcMaxEC-MlcMinEC : 118
+0000:00:03 [Get_DeviceDensity] Density : 256 GB
+0000:00:03 ******************* SSIR - Number of Partition Made so far = 0 *******************
+0000:00:03 OSVDescriptor.Length : [0x1c]
+0000:00:03 OSVDescriptor.DescriptorType : [0xc]
+0000:00:03 OSVDescriptor.UncorrectableECCError : [0x0]
+0000:00:03 OSVDescriptor.MetaDataCorruption : [0x0]
+0000:00:03 OSVDescriptor.RuntimeBadBlockLimitOver : [0x0]
+0000:00:03 
+0000:00:03 WAI : 1, WAF : 1
+0000:00:03 EC SLC Max : 191, Min : 74, Avg : 163
+0000:00:03 EC MLC Max : 159, Min : 41, Avg : 64
+0000:00:03 InitBB : 34, RTBB : 0, RB : 126
+0000:00:03 TotalNandWriteBytes : 12820385304576
+0000:00:03 TotalNandEraseBytes : 19615569149952
+0000:00:03 ReadReclaimCount : 5
+0000:00:03 FTLOpenCount : 15099
+0000:00:03 SlcMaxEC-SlcMinEC : 117
+0000:00:03 MlcMaxEC-MlcMinEC : 118
+0000:00:03 ******************* Before: ExceptionEventControl = 0x4 and in ExceptionEventControl Bit3:0x0 & Bit4:0x0 *******************
+0000:00:03 ******************* Set TEMP Event Control Bit *******************
+0000:00:03 ******************* After: ExceptionEventControl = 0x1c and in ExceptionEventControl Bit3:0x1 & Bit4:0x1 *******************
+0000:00:03 ******************* TEMP Event Control Bit Set! *******************
+0000:00:03 
+0000:00:03 
+0000:00:03 Reset Count: 0
+0000:00:03 POR Count: 0
+0000:00:03 PMC Count: 1
+0000:00:03 Io Count: 187
+0000:00:03 Read Io Count: 105
+0000:00:03 Read Io Length: 1002 KB
+0000:00:03 Write Io Count: 5
+0000:00:03 Write Io Length: 2 KB
+0000:00:03 Maximum Latency Time: 35694 usec
+0000:00:03 Average Latency Time: 1554 usec
+0000:00:03 Minimum Latency Time: 9 usec
+0000:00:03 
+0000:00:03 >>>ELAPSED_TIME	0000:00:00
+0000:00:03 >>>END TL_interlude 	Apr 23 11:22:01	[PASSED]
