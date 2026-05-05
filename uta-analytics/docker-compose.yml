@@ -110,14 +110,24 @@ services:
       - uta-net
 
   # ---- Grafana ----
+  # Built from ./grafana/Dockerfile so the ClickHouse datasource plugin is
+  # baked into the image at build time. Corporate-firewall-friendly:
+  #   • Drop ./grafana/corp-ca.crt before building to trust the corp root CA.
+  #   • Or drop a pre-downloaded plugin .zip in ./grafana/plugins/ for fully
+  #     offline installs.
   grafana:
-    image: grafana/grafana-oss:latest
+    build:
+      context: ./grafana
+      dockerfile: Dockerfile
+    image: uta-analytics-grafana:latest
     container_name: uta-grafana
     ports:
       - "${GF_PORT}:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD}
-      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+      # Plugin is pre-installed in the image — empty so the entrypoint skips
+      # the runtime download that fails behind a TLS-inspecting firewall.
+      GF_INSTALL_PLUGINS: ""
       UTA_CH_USERNAME: ${UTA_CH_USERNAME:-default}
       UTA_CH_PASSWORD: ${UTA_CH_PASSWORD:-password}
     volumes:

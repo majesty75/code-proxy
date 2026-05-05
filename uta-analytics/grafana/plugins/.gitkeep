@@ -1,0 +1,5 @@
+# Drop a pre-downloaded plugin .zip here for offline / firewalled installs.
+# Filename must match: grafana-clickhouse-datasource*.zip
+# Download command (run on a machine with internet access):
+#   curl -L -o grafana-clickhouse-datasource.zip \
+#     https://grafana.com/api/plugins/grafana-clickhouse-datasource/versions/latest/download

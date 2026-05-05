@@ -16,3 +16,8 @@ __pycache__/
 
 # Tooling — local Claude Code MCP config, not for the repo
 .mcp.json
+
+# Corporate certs / pre-downloaded plugin zips — never commit these
+uta-analytics/grafana/corp-ca.crt
+uta-analytics/grafana/corp-ca.cer
+uta-analytics/grafana/plugins/*.zip
