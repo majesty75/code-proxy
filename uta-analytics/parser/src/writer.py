@@ -34,6 +34,7 @@ SESSION_COLUMNS = [
     "patch_version", "release_candidate", "firmware_version",
     "engineers", "test_purpose", "storage_type",
     "snapshot_count", "last_snapshot_at",
+    "session_elapsed_s_max", "last_elapsed_s",
 ]
 
 LOG_EVENT_COLUMNS = [
@@ -44,7 +45,8 @@ LOG_EVENT_COLUMNS = [
 SNAPSHOT_COLUMNS = [
     "snapshot_id", "log_filename", "server_ip", "slot_id",
     "rack", "shelf", "slot",
-    "block_index", "block_started_at", "block_ended_at",
+    "block_index", "block_elapsed_s", "block_elapsed_end_s",
+    "block_started_at", "block_ended_at",
     "block_duration_s", "block_status",
     # promoted typed metrics (definite tier)
     "wai", "waf",
@@ -66,7 +68,7 @@ SNAPSHOT_COLUMNS = [
 
 METRIC_COLUMNS = [
     "snapshot_id", "log_filename", "server_ip", "slot_id",
-    "block_started_at", "block_index",
+    "block_started_at", "block_elapsed_s", "block_index",
     "section", "key", "value_num", "value_str", "unit",
 ]
 
@@ -139,9 +141,15 @@ class ClickHouseWriter:
         filename: str,
         server_ip: str,
         block_started_at: Optional[datetime],
+        block_elapsed_s: float,
         had_failure: bool,
     ) -> None:
-        """After a snapshot lands, refresh the master with new aggregates."""
+        """After a snapshot lands, refresh the master with new aggregates.
+
+        ``block_elapsed_s`` is the elapsed seconds since test start parsed from
+        the line prefix at BEGIN — the relative-time axis we ride for trends
+        and run-to-run comparison.
+        """
         result = self.client.query(
             "SELECT * FROM test_sessions FINAL "
             "WHERE log_filename = {fn:String} AND server_ip = {ip:String} "
@@ -158,6 +166,12 @@ class ClickHouseWriter:
             row["snapshot_count"] = int(row.get("snapshot_count") or 0) + 1
         except (TypeError, ValueError):
             row["snapshot_count"] = 1
+        try:
+            prev_max = float(row.get("session_elapsed_s_max") or 0.0)
+        except (TypeError, ValueError):
+            prev_max = 0.0
+        row["session_elapsed_s_max"] = max(prev_max, float(block_elapsed_s or 0.0))
+        row["last_elapsed_s"] = float(block_elapsed_s or 0.0)
         if had_failure and row.get("status") in (None, "RUNNING", "PASSED", "UNKNOWN"):
             row["status"] = "FAILED"
         elif row.get("status") in (None, "UNKNOWN"):

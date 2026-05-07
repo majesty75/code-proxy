@@ -39,8 +39,14 @@ CREATE TABLE uta.test_sessions
     test_purpose       LowCardinality(String) DEFAULT '',   -- Qual
     storage_type       LowCardinality(String) DEFAULT '',   -- UFS
 
-    snapshot_count     UInt32 DEFAULT 0,
-    last_snapshot_at   Nullable(DateTime64(3))
+    snapshot_count        UInt32  DEFAULT 0,
+    last_snapshot_at      Nullable(DateTime64(3)),
+
+    -- Relative-time tracking. Tests are compared on elapsed seconds since
+    -- start (parsed from the leading 'HHHH:MM:SS' prefix on every line),
+    -- not on wall-clock — that way two runs on different days overlay at t=0.
+    session_elapsed_s_max Float64 DEFAULT 0,             -- largest elapsed seen so far in any snapshot
+    last_elapsed_s        Float64 DEFAULT 0              -- elapsed at the most recent snapshot
 )
 ENGINE = ReplacingMergeTree(last_seen_at)
 ORDER BY (server_ip, log_filename)
@@ -83,11 +89,13 @@ CREATE TABLE uta.interlude_snapshots
     shelf              UInt8 DEFAULT 0,
     slot               UInt8 DEFAULT 0,
 
-    block_index        UInt32 DEFAULT 0,                  -- 0,1,2 … per file
-    block_started_at   DateTime64(3),                      -- wall clock from BEGIN marker
+    block_index        UInt32 DEFAULT 0,                       -- 0,1,2 … per file
+    block_elapsed_s    Float64 DEFAULT 0,                       -- elapsed seconds since test start, from line prefix at BEGIN
+    block_elapsed_end_s Float64 DEFAULT 0,                      -- elapsed seconds at END marker (max body elapsed)
+    block_started_at   Nullable(DateTime64(3)),                 -- wall clock from BEGIN marker (kept as a fallback / forensic anchor)
     block_ended_at     Nullable(DateTime64(3)),
     block_duration_s   Nullable(Float64),
-    block_status       LowCardinality(String) DEFAULT '',  -- PASSED/FAILED/UNKNOWN
+    block_status       LowCardinality(String) DEFAULT '',       -- PASSED/FAILED/UNKNOWN
 
     -- Promoted typed metrics (the 'Definite' tier — graphed directly).
     wai                    Nullable(Float64),
@@ -135,9 +143,9 @@ CREATE TABLE uta.interlude_snapshots
     ingested_at        DateTime64(3) DEFAULT now64(3)
 )
 ENGINE = MergeTree()
-PARTITION BY toYYYYMMDD(block_started_at)
-ORDER BY (slot_id, log_filename, block_started_at, block_index)
-TTL block_started_at + INTERVAL 60 DAY
+PARTITION BY toYYYYMMDD(ingested_at)
+ORDER BY (slot_id, log_filename, block_index)
+TTL ingested_at + INTERVAL 60 DAY
 SETTINGS index_granularity = 8192;
 
 -- ==============================================================
@@ -152,18 +160,20 @@ CREATE TABLE uta.interlude_metrics
     log_filename     String,
     server_ip        String,
     slot_id          String,
-    block_started_at DateTime64(3),
-    block_index      UInt32 DEFAULT 0,
+    block_started_at Nullable(DateTime64(3)),             -- wall clock anchor (optional)
+    block_elapsed_s  Float64 DEFAULT 0,                    -- relative time since test start — primary axis for trends/comparison
+    block_index      UInt32  DEFAULT 0,
     section          LowCardinality(String) DEFAULT '',  -- e.g. "smart_report", "health_descriptor"
     key              String,                              -- e.g. "ssr.ReceivedPonCount"
     value_num        Nullable(Float64),                   -- pre-decoded (hex→int, suffix stripped)
-    value_str        String DEFAULT '',                   -- original raw token (always set)
-    unit             LowCardinality(String) DEFAULT ''    -- "MB", "us", "KB", "" when none
+    value_str        String  DEFAULT '',                  -- original raw token (always set)
+    unit             LowCardinality(String) DEFAULT '',  -- "MB", "us", "KB", "" when none
+    ingested_at      DateTime64(3) DEFAULT now64(3)
 )
 ENGINE = MergeTree()
-PARTITION BY toYYYYMMDD(block_started_at)
-ORDER BY (slot_id, key, block_started_at)
-TTL block_started_at + INTERVAL 60 DAY
+PARTITION BY toYYYYMMDD(ingested_at)
+ORDER BY (slot_id, log_filename, key, block_index)
+TTL ingested_at + INTERVAL 60 DAY
 SETTINGS index_granularity = 8192;
 
 -- ==============================================================

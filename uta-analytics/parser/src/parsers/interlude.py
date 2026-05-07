@@ -246,6 +246,12 @@ class InterludeBlockParser(BaseBlockParser):
             "block_started_at": None,
             "block_ended_at": None,
             "block_duration_s": None,
+            # Relative time anchors — taken straight from the leading
+            # 'HHHH:MM:SS' prefix the firmware stamps on every line. These
+            # are the canonical X axis for trends/comparison; wall-clock
+            # markers are only kept as forensic context.
+            "block_elapsed_s": 0.0,      # elapsed at the BEGIN line
+            "block_elapsed_end_s": 0.0,  # elapsed at the END line / largest body elapsed
         }
         promoted: dict[str, Any] = {}
         metrics_dict: dict[tuple[str, str], dict[str, Any]] = {}
@@ -259,6 +265,8 @@ class InterludeBlockParser(BaseBlockParser):
         device_info: Optional[list[str]] = None
         fw_elapsed: Optional[str] = None
         max_body_elapsed_s: float = 0.0
+        begin_elapsed_s: Optional[float] = None
+        end_elapsed_s: Optional[float] = None
 
         current_lu: Optional[dict[str, Any]] = None
         current_mcb: Optional[dict[str, Any]] = None
@@ -279,10 +287,11 @@ class InterludeBlockParser(BaseBlockParser):
         for raw_line in lines:
             # Strip elapsed prefix (track max for block duration fallback)
             mp = LINE_PREFIX.match(raw_line)
+            line_elapsed_s: Optional[float] = None
             if mp:
-                elapsed_s = _elapsed_to_seconds(mp.group(1))
-                if elapsed_s is not None and elapsed_s > max_body_elapsed_s:
-                    max_body_elapsed_s = elapsed_s
+                line_elapsed_s = _elapsed_to_seconds(mp.group(1))
+                if line_elapsed_s is not None and line_elapsed_s > max_body_elapsed_s:
+                    max_body_elapsed_s = line_elapsed_s
                 body = raw_line[mp.end():]
             else:
                 body = raw_line
@@ -291,13 +300,17 @@ class InterludeBlockParser(BaseBlockParser):
             if not body:
                 continue
 
-            # BEGIN / END markers
+            # BEGIN / END markers — also pin elapsed-seconds anchors here.
             if (m := BEGIN_RE.search(body)):
                 snapshot["block_started_at"] = _parse_marker_time(m.group(1), meta)
+                if line_elapsed_s is not None and begin_elapsed_s is None:
+                    begin_elapsed_s = line_elapsed_s
                 continue
             if (m := END_RE.search(body)):
                 snapshot["block_ended_at"] = _parse_marker_time(m.group(1), meta)
                 snapshot["block_status"] = (m.group(2) or "UNKNOWN").upper()
+                if line_elapsed_s is not None:
+                    end_elapsed_s = line_elapsed_s
                 continue
 
             # >>> markers
@@ -539,14 +552,24 @@ class InterludeBlockParser(BaseBlockParser):
 
             # Unmatched line — silently ignored for now.
 
-        # Block duration: take whichever of wall-clock and body-elapsed is
-        # larger. Wall delta is sometimes 0 because BEGIN and END share the
-        # same MMM-DD-HH:MM:SS second; the body's elapsed prefix is finer.
-        started = snapshot["block_started_at"]
-        ended   = snapshot["block_ended_at"]
-        wall_dur = (ended - started).total_seconds() if (started and ended) else None
-        candidates = [d for d in (wall_dur, max_body_elapsed_s) if d is not None]
-        snapshot["block_duration_s"] = max(candidates) if candidates else None
+        # Pin the relative-time axis. begin_elapsed_s comes straight from the
+        # 'HHHH:MM:SS' prefix on the BEGIN line. If the BEGIN line lacked a
+        # prefix (older logs sometimes do), fall back to the smallest body
+        # elapsed we saw, then 0.
+        if begin_elapsed_s is None:
+            begin_elapsed_s = 0.0
+        if end_elapsed_s is None:
+            end_elapsed_s = max_body_elapsed_s
+        snapshot["block_elapsed_s"] = float(begin_elapsed_s)
+        snapshot["block_elapsed_end_s"] = float(end_elapsed_s)
+
+        # Block duration is now derived purely from elapsed prefixes — no
+        # wall-clock math (BEGIN/END often share the same MMM DD HH:MM:SS
+        # second anyway, so the elapsed-prefix delta is finer and reliable).
+        rel_dur = end_elapsed_s - begin_elapsed_s
+        if rel_dur < 0:
+            rel_dur = 0.0
+        snapshot["block_duration_s"] = rel_dur
 
         # Pack everything that didn't go into a typed column into the JSON blob.
         snapshot["variables"] = {

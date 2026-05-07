@@ -186,7 +186,7 @@
       },
       "targets": [{
         "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
-        "rawSql": "SELECT toString(status) AS status, concat(controller, ' ', replaceAll(interface, '_', ' '), '\\n', patch_version, ' ', release_candidate, ' ', firmware_version, '\\n', nand_type, ' ', nand_density, ' ', package_density) AS short_name, concat(toString(toInt32((dateDiff('second', started_at, now()))/3600)), 'h ', toString(toInt32(((dateDiff('second', started_at, now())) % 3600)/60)), 'm') AS duration_str, snapshot_count FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC LIMIT 1",
+        "rawSql": "SELECT toString(status) AS status, concat(controller, ' ', replaceAll(interface, '_', ' '), '\\n', patch_version, ' ', release_candidate, ' ', firmware_version, '\\n', nand_type, ' ', nand_density, ' ', package_density) AS short_name, concat(toString(toInt32(session_elapsed_s_max / 3600)), 'h ', toString(toInt32((toInt64(session_elapsed_s_max) % 3600) / 60)), 'm') AS duration_str, snapshot_count FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' ORDER BY last_seen_at DESC LIMIT 1",
         "format": "table"
       }]
     },
@@ -242,9 +242,19 @@
       },
       "targets": [{
         "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
-        "rawSql": "SELECT rack, shelf, slot, slot_id, toString(status) AS status, controller, replaceAll(interface, '_', ' ') AS interface, patch_version, release_candidate, firmware_version, nand_type, nand_density, package_density, test_purpose, started_at, last_snapshot_at, snapshot_count FROM uta.test_sessions FINAL WHERE slot_id != '' AND match(toString(rack), '${rack:regex}') AND match(controller, '${controller:regex}') AND match(firmware_version, '${fw_version:regex}') AND match(test_purpose, '${test_purpose:regex}') ORDER BY rack, shelf, slot",
+        "rawSql": "SELECT rack, shelf, slot, slot_id, toString(status) AS status, controller, replaceAll(interface, '_', ' ') AS interface, patch_version, release_candidate, firmware_version, nand_type, nand_density, package_density, test_purpose, started_at, last_snapshot_at, snapshot_count, session_elapsed_s_max AS duration_s FROM uta.test_sessions FINAL WHERE slot_id != '' AND match(toString(rack), '${rack:regex}') AND match(controller, '${controller:regex}') AND match(firmware_version, '${fw_version:regex}') AND match(test_purpose, '${test_purpose:regex}') ORDER BY rack, shelf, slot",
         "format": "table"
       }]
+    },
+
+    {
+      "id": 35,
+      "type": "text",
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 2 },
+      "options": {
+        "mode": "markdown",
+        "content": "**Want to compare runs side-by-side on relative time?** → [Test Runs Comparison](/d/uta-test-runs-compare-v1/uta-test-runs-comparison) — pick any number of runs and overlay their interlude curves anchored at `t=0`."
+      }
     },
 
     {

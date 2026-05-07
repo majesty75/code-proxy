@@ -217,8 +217,13 @@ class LogConsumer:
         snapshot["shelf"]        = meta.get("shelf", 0)
         snapshot["slot"]         = meta.get("slot", 0)
         snapshot["block_index"]  = idx
+        # Wall-clock anchor is best-effort only — the elapsed-prefix
+        # values (block_elapsed_s / block_elapsed_end_s) are the canonical
+        # axis and are already filled by the parser.
         if snapshot.get("block_started_at") is None:
-            snapshot["block_started_at"] = meta.get("started_at") or dt.datetime.utcnow()
+            snapshot["block_started_at"] = meta.get("started_at")
+        snapshot.setdefault("block_elapsed_s", 0.0)
+        snapshot.setdefault("block_elapsed_end_s", snapshot["block_elapsed_s"])
 
         try:
             self.writer.write_interlude_snapshot(snapshot)
@@ -238,6 +243,7 @@ class LogConsumer:
                     "server_ip":        key[0],
                     "slot_id":          meta.get("slot_id", ""),
                     "block_started_at": snapshot["block_started_at"],
+                    "block_elapsed_s":  snapshot["block_elapsed_s"],
                     "block_index":      idx,
                     "section":          m.get("section", ""),
                     "key":              m.get("key", ""),
@@ -257,6 +263,7 @@ class LogConsumer:
             self.writer.bump_session_after_snapshot(
                 key[1], key[0],
                 block_started_at=snapshot["block_started_at"],
+                block_elapsed_s=snapshot["block_elapsed_s"],
                 had_failure=(snapshot.get("block_status") == "FAILED"),
             )
         except Exception:

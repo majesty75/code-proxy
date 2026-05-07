@@ -139,6 +139,26 @@ class InterludeBlockParseTests(unittest.TestCase):
         self.assertIsNotNone(s["block_ended_at"])
         self.assertIsNotNone(s["block_duration_s"])
 
+    def test_relative_time_captured(self):
+        """The HHHH:MM:SS prefix on the BEGIN line drives block_elapsed_s.
+
+        This is the canonical X axis for trends and run-to-run comparison;
+        wall-clock is forensic only.
+        """
+        s = self.snapshot
+        self.assertIn("block_elapsed_s", s)
+        self.assertIn("block_elapsed_end_s", s)
+        self.assertIsInstance(s["block_elapsed_s"], float)
+        self.assertIsInstance(s["block_elapsed_end_s"], float)
+        self.assertGreaterEqual(s["block_elapsed_s"], 0.0)
+        # END never precedes BEGIN.
+        self.assertGreaterEqual(s["block_elapsed_end_s"], s["block_elapsed_s"])
+        # Duration is now derived purely from elapsed prefixes.
+        self.assertAlmostEqual(
+            s["block_duration_s"],
+            s["block_elapsed_end_s"] - s["block_elapsed_s"],
+        )
+
     def test_promoted_definite_metrics(self):
         s = self.snapshot
         self.assertEqual(s["wai"], 1)

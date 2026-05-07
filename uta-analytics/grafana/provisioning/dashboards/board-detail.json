@@ -47,7 +47,7 @@
       "gridPos": { "x": 0, "y": 0, "w": 24, "h": 2 },
       "options": {
         "mode": "markdown",
-        "content": "## Board `${slot_id}` &nbsp;|&nbsp; Log `${log_filename}` &nbsp;|&nbsp; [← Lab Grid](/d/uta-lab-grid-v1/)"
+        "content": "## Board `${slot_id}` &nbsp;|&nbsp; Log `${log_filename}` &nbsp;|&nbsp; [← Lab Grid](/d/uta-lab-grid-v1/) &nbsp;|&nbsp; [Compare runs →](/d/uta-test-runs-compare-v1/uta-test-runs-comparison?var-slot_id=${slot_id})"
       }
     },
 
@@ -61,7 +61,7 @@
       "fieldConfig": { "defaults": { "custom": { "align": "left", "displayMode": "auto" } } },
       "targets": [{
         "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse-uta" },
-        "rawSql": "SELECT log_filename, slot_id, rack, shelf, slot, started_at, status, snapshot_count, last_snapshot_at, controller, replaceAll(interface, '_', ' ') AS interface, fw_arch, nand_type, nand_density, manufacturer, package_density, patch_version, release_candidate, firmware_version, arrayStringConcat(engineers, ', ') AS engineers, test_purpose, storage_type, execution_type, project FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') ORDER BY last_seen_at DESC LIMIT 1",
+        "rawSql": "SELECT log_filename, slot_id, rack, shelf, slot, started_at, status, snapshot_count, last_snapshot_at, concat(toString(toInt32(session_elapsed_s_max / 3600)), 'h ', toString(toInt32((toInt64(session_elapsed_s_max) % 3600) / 60)), 'm') AS elapsed, controller, replaceAll(interface, '_', ' ') AS interface, fw_arch, nand_type, nand_density, manufacturer, package_density, patch_version, release_candidate, firmware_version, arrayStringConcat(engineers, ', ') AS engineers, test_purpose, storage_type, execution_type, project FROM uta.test_sessions FINAL WHERE slot_id = '${slot_id}' AND match(log_filename, '${log_filename:regex}') ORDER BY last_seen_at DESC LIMIT 1",
         "format": "table"
       }]
     },
