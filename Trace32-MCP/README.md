@@ -10,15 +10,15 @@ Supports macOS, Linux, and **Windows** (see [docs/WINDOWS.md](docs/WINDOWS.md)).
 
 ## Install — `uvx`, no clone needed
 
-Trace32-MCP lives in the `trace32-mcp` branch of the private `majesty75/code-proxy`
-repo, under the `Trace32-MCP/` subdirectory. `uv`/`uvx` understands that natively:
+Install directly from the git repo — `uv`/`uvx` builds and runs in an
+isolated environment:
 
 ```bash
 # one-off run (recommended for MCP clients)
-uvx --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+uvx --from "git+https://github.com/<OWNER>/<REPO>.git" trace32-mcp
 
 # persistent install
-uv tool install --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+uv tool install --from "git+https://github.com/<OWNER>/<REPO>.git" trace32-mcp
 trace32-mcp   # now on $PATH
 ```
 
@@ -33,8 +33,8 @@ extra download or DB rebuild needed.
 ### When you DO want the source checkout
 
 ```bash
-git clone git@github.com:majesty75/code-proxy.git uta
-cd uta && git checkout trace32-mcp && cd Trace32-MCP
+git clone <repo-url>
+cd Trace32-MCP
 
 python -m venv .venv && . .venv/bin/activate
 pip install -e .

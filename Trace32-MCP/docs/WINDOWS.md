@@ -38,24 +38,22 @@ point. The 191 MB sharded manuals DB ships inside the wheel.
 
 ```powershell
 # one-off (good for `.mcp.json` configuration)
-uvx --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+uvx --from "git+https://github.com/<OWNER>/<REPO>.git" trace32-mcp
 
 # or persistent: installs to %USERPROFILE%\.local\bin\trace32-mcp.exe
-uv tool install --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+uv tool install --from "git+https://github.com/<OWNER>/<REPO>.git" trace32-mcp
 trace32-mcp   # now on $PATH
 ```
 
 If SSH isn't set up on Windows, use HTTPS + a PAT:
 ```powershell
-uvx --from "git+https://<USER>:<PAT>@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+uvx --from "git+https://<USER>:<PAT>@github.com/<OWNER>/<REPO>.git" trace32-mcp
 ```
 
 ### Option B — clone + editable install (use if you want to modify the code)
 
 ```powershell
-git clone git@github.com:majesty75/code-proxy.git uta
-cd uta
-git checkout trace32-mcp
+git clone <repo-url>
 cd Trace32-MCP
 
 python -m venv .venv
@@ -154,7 +152,7 @@ $env:T32_DEMO_AXF = "C:\T32\demo\arm\compiler\arm\sieve.axf"
       "command": "uvx",
       "args": [
         "--from",
-        "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP",
+        "git+https://github.com/<OWNER>/<REPO>.git",
         "trace32-mcp"
       ],
       "env": {
