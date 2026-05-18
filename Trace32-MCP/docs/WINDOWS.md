@@ -25,10 +25,37 @@ license activates everything automatically.
 
 ## 2. Install the MCP
 
-### Option A — clone and install editable (recommended for testing)
+### Option A — `uvx` (recommended, no clone, no venv)
+
+Install `uv` first if you don't have it:
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Then either of these — `uvx` clones the private repo into its own cache,
+builds the wheel from the `Trace32-MCP/` subdirectory, and runs the entry
+point. The 191 MB sharded manuals DB ships inside the wheel.
 
 ```powershell
-git clone https://github.com/<owner>/Trace32-MCP.git
+# one-off (good for `.mcp.json` configuration)
+uvx --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+
+# or persistent: installs to %USERPROFILE%\.local\bin\trace32-mcp.exe
+uv tool install --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+trace32-mcp   # now on $PATH
+```
+
+If SSH isn't set up on Windows, use HTTPS + a PAT:
+```powershell
+uvx --from "git+https://<USER>:<PAT>@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+```
+
+### Option B — clone + editable install (use if you want to modify the code)
+
+```powershell
+git clone git@github.com:majesty75/code-proxy.git uta
+cd uta
+git checkout trace32-mcp
 cd Trace32-MCP
 
 python -m venv .venv
@@ -38,12 +65,6 @@ pip install -e .
 
 # Optional, only if you'll rebuild the manuals DB:
 pip install -e ".[build]"
-```
-
-### Option B — uvx (zero install, once we publish to PyPI)
-
-```powershell
-uvx trace32-mcp
 ```
 
 ---
@@ -124,16 +145,33 @@ $env:T32_DEMO_AXF = "C:\T32\demo\arm\compiler\arm\sieve.axf"
 
 ### Claude Code
 
-`%APPDATA%\Claude\.mcp.json`:
+`%APPDATA%\Claude\.mcp.json` — uvx style (no clone needed):
 
 ```json
 {
   "mcpServers": {
     "trace32": {
-      "command": "C:\\path\\to\\Trace32-MCP\\.venv\\Scripts\\trace32-mcp.exe",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP",
+        "trace32-mcp"
+      ],
       "env": {
         "T32SYS": "C:\\T32"
       }
+    }
+  }
+}
+```
+
+Or if you used `uv tool install` / `pip install`:
+```json
+{
+  "mcpServers": {
+    "trace32": {
+      "command": "trace32-mcp",
+      "env": { "T32SYS": "C:\\T32" }
     }
   }
 }

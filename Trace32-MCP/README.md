@@ -8,24 +8,40 @@ bundled TRACE32 manuals when the LLM doesn't know the syntax yet.
 
 Supports macOS, Linux, and **Windows** (see [docs/WINDOWS.md](docs/WINDOWS.md)).
 
-## Install
+## Install — `uvx`, no clone needed
+
+Trace32-MCP lives in the `trace32-mcp` branch of the private `majesty75/code-proxy`
+repo, under the `Trace32-MCP/` subdirectory. `uv`/`uvx` understands that natively:
 
 ```bash
-# zero-friction (once published to PyPI)
-uvx trace32-mcp
+# one-off run (recommended for MCP clients)
+uvx --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
 
-# or from source
-git clone https://github.com/<owner>/Trace32-MCP.git
-cd Trace32-MCP
-pip install -e .
-
-# add the DB build pipeline (only if you want to rebuild manuals from help.zip)
-pip install -e '.[build]'
+# persistent install
+uv tool install --from "git+ssh://git@github.com/majesty75/code-proxy.git@trace32-mcp#subdirectory=Trace32-MCP" trace32-mcp
+trace32-mcp   # now on $PATH
 ```
 
-The manuals vector DB (~145 MB sharded across 5 sqlite-vec files) is shipped
-in the repo at `src/trace32_mcp/db/`. It's auto-discovered at runtime — no
-download needed if you install from source.
+(Use the `https://` variant with a PAT if you don't have SSH keys configured.)
+
+uvx clones the repo into its own cache, builds a wheel from the
+`Trace32-MCP/` subdirectory, and runs the `trace32-mcp` entry point in an
+isolated environment. The bundled manuals DB (~191 MB sharded across 5
+sqlite-vec files at `src/trace32_mcp/db/`) is shipped inside the wheel — no
+extra download or DB rebuild needed.
+
+### When you DO want the source checkout
+
+```bash
+git clone git@github.com:majesty75/code-proxy.git uta
+cd uta && git checkout trace32-mcp && cd Trace32-MCP
+
+python -m venv .venv && . .venv/bin/activate
+pip install -e .
+
+# only if you want to rebuild the manuals DB from help.zip
+pip install -e '.[build]'
+```
 
 ## The 24 tools
 
