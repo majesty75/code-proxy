@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+config/layouts/*.json
+dropzone/*.bank
+dropzone/*.bin
+*.bin
+!tests/**/*.bin
+.env
+config/uta_demo.sqlite
+# product memory-map dumps — internal layout / section names, do not publish
+scratch/*.txt

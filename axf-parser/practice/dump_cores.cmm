@@ -1,0 +1,41 @@
+; dump_cores.cmm — TRACE32 PRACTICE: non-intrusive per-bank SRAM dump.
+;
+; Produces one .bank file per memory bank, named to the contract the dump_agent
+; expects:   <slot>_<core>_<YYYYMMDD>_<HHMMSS>_<base08x>.bank
+; The agent groups a core's banks into one container; no layout needed here.
+;
+; The concrete per-core list of (base,len) banks comes from the registered AXF:
+;   python -m tools.emit_practice config/layouts/<KEY>.json --slot R7S1-01 > dump_<core>.cmm
+; This file is the hand-written reference showing the contract + the rules.
+;
+; ARGS: &slot  &core  &outdir
+ENTRY &slot &core &outdir
+
+LOCAL &ts &date &time
+&date=FORMAT.UnixTime("%Y%m%d",CLOCK.UnixTime(),0)
+&time=FORMAT.UnixTime("%H%M%S",CLOCK.UnixTime(),0)
+
+; ---- RULES ----
+; 1. NON-INTRUSIVE: do NOT halt the core. Data.SAVE.Binary reads over the debug
+;    port while the CPU runs. Verify SYStem.MemAccess permits run-time reads on
+;    your target (e.g. SYStem.MemAccess DAP).
+; 2. Write each bank to .tmp then rename to .bank so the agent never sees a
+;    partial file (atomic publish).
+;
+; ---- One bank (repeat per (base,len) from emit_practice) ----
+; &base / &len are hex, e.g. 0x20000000 / 0x00019988
+GOSUB DUMP_BANK &slot &core &date &time 0x20000000 0x00019988
+; GOSUB DUMP_BANK &slot &core &date &time 0x40008000 0x00024724
+; ... one GOSUB per bank ...
+
+ENDDO
+
+DUMP_BANK:
+  ENTRY &slot &core &date &time &base &len
+  LOCAL &b8 &tmp &fin
+  &b8=FORMAT.HEX(8,&base)                         ; 8-hex-digit base, no 0x
+  &tmp="&outdir/&slot._&core._&date._&time._&b8..bank.tmp"
+  &fin="&outdir/&slot._&core._&date._&time._&b8..bank"
+  Data.SAVE.Binary &tmp &base++&len              ; non-halting region save
+  OS.Command ren "&tmp" "&fin"                    ; atomic -> agent picks it up
+  RETURN

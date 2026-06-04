@@ -1,0 +1,4 @@
+# Core library + tools + tests (offline). Services have their own pinned files.
+pyelftools>=0.30
+pyyaml>=6.0
+pytest>=8.0

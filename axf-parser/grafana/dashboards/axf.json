@@ -1,0 +1,47 @@
+{
+  "title": "AXF Analytics",
+  "uid": "axf-main",
+  "schemaVersion": 39,
+  "editable": true,
+  "time": {"from": "now-7d", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "product", "type": "query", "datasource": {"type": "grafana-clickhouse-datasource"},
+       "query": "SELECT DISTINCT product FROM uta.axf_metrics", "refresh": 2},
+      {"name": "core", "type": "query", "datasource": {"type": "grafana-clickhouse-datasource"},
+       "query": "SELECT DISTINCT core FROM uta.axf_metrics WHERE product='$product'", "refresh": 2},
+      {"name": "key", "type": "query", "datasource": {"type": "grafana-clickhouse-datasource"},
+       "query": "SELECT DISTINCT key FROM uta.axf_metrics WHERE product='$product' AND core='$core'", "refresh": 2}
+    ]
+  },
+  "panels": [
+    {
+      "title": "Curated metric vs elapsed time (run overlay at t=0)",
+      "type": "timeseries",
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 0},
+      "datasource": {"type": "grafana-clickhouse-datasource"},
+      "targets": [
+        {"rawSql": "SELECT elapsed_s AS time, trname, value_num FROM uta.axf_metrics WHERE product='$product' AND core='$core' AND key='$key' ORDER BY elapsed_s",
+         "format": "time_series"}
+      ]
+    },
+    {
+      "title": "Decode errors by type (last 24h)",
+      "type": "table",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+      "datasource": {"type": "grafana-clickhouse-datasource"},
+      "targets": [
+        {"rawSql": "SELECT error_type, count() AS n FROM uta.axf_decode_errors WHERE occurred_at > now()-INTERVAL 24 HOUR GROUP BY error_type ORDER BY n DESC", "format": "table"}
+      ]
+    },
+    {
+      "title": "Snapshots ingested per hour",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+      "datasource": {"type": "grafana-clickhouse-datasource"},
+      "targets": [
+        {"rawSql": "SELECT toStartOfHour(ingested_at) AS time, count() AS snapshots FROM uta.axf_snapshots GROUP BY time ORDER BY time", "format": "time_series"}
+      ]
+    }
+  ]
+}

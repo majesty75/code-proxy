@@ -1,0 +1,4 @@
+nats-py>=2.6
+clickhouse-connect>=0.7
+pyelftools>=0.30
+pyyaml>=6.0

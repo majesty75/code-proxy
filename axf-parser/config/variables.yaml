@@ -1,0 +1,27 @@
+# Curated keys promoted to uta.axf_metrics for dashboards, per product+core.
+# Everything else is still decoded and archived in axf_snapshots.decoded_json;
+# a new key here can be backfilled from there with no schema change.
+#
+# Keys are the dotted leaf paths produced by core.flatten (variable.path.to.leaf).
+# Start small (10-50); confirm exact paths per product with the FW team (OPEN-D).
+
+# Demo product (RTEMS sample AXF) — real leaf paths from ticker-arm.elf.
+RTEMS:
+  M:
+    - Configuration.microseconds_per_tick
+    - Configuration.ticks_per_timeslice
+    - Configuration.work_space_size
+    - Configuration_RTEMS_API.maximum_tasks
+    - Configuration_RTEMS_API.maximum_semaphores
+    - rtems_maximum_priority
+
+# Real products — fill curated SSD telemetry paths (placeholders).
+SIRIUS:
+  H:
+    - smart.wai
+    - smart.waf
+    - ec.slc.max
+    - ec.slc.avg
+    - bad_block.init_bb
+    - temp.case
+    - io.total
