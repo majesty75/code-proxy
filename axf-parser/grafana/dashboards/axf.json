@@ -16,13 +16,15 @@
   },
   "panels": [
     {
-      "title": "Curated metric vs elapsed time (run overlay at t=0)",
-      "type": "timeseries",
+      "title": "Curated metric vs elapsed seconds (run overlay at t=0)",
+      "type": "trend",
       "gridPos": {"h": 10, "w": 24, "x": 0, "y": 0},
       "datasource": {"type": "grafana-clickhouse-datasource"},
+      "options": {"xField": "elapsed_s"},
+      "fieldConfig": {"defaults": {"custom": {"drawStyle": "line", "showPoints": "always", "pointSize": 8, "lineWidth": 2}}},
       "targets": [
-        {"rawSql": "SELECT elapsed_s AS time, trname, value_num FROM uta.axf_metrics WHERE product='$product' AND core='$core' AND key='$key' ORDER BY elapsed_s",
-         "format": "time_series"}
+        {"refId": "A", "format": "table", "datasource": {"type": "grafana-clickhouse-datasource"},
+         "rawSql": "SELECT elapsed_s, value_num FROM uta.axf_metrics WHERE product='$product' AND core='$core' AND key='$key' ORDER BY elapsed_s"}
       ]
     },
     {
@@ -31,16 +33,28 @@
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
       "datasource": {"type": "grafana-clickhouse-datasource"},
       "targets": [
-        {"rawSql": "SELECT error_type, count() AS n FROM uta.axf_decode_errors WHERE occurred_at > now()-INTERVAL 24 HOUR GROUP BY error_type ORDER BY n DESC", "format": "table"}
+        {"refId": "A", "format": "table", "datasource": {"type": "grafana-clickhouse-datasource"},
+         "rawSql": "SELECT error_type, count() AS n FROM uta.axf_decode_errors WHERE occurred_at > now()-INTERVAL 24 HOUR GROUP BY error_type ORDER BY n DESC"}
       ]
     },
     {
-      "title": "Snapshots ingested per hour",
-      "type": "timeseries",
-      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+      "title": "Snapshots ingested",
+      "type": "stat",
+      "gridPos": {"h": 8, "w": 6, "x": 12, "y": 10},
       "datasource": {"type": "grafana-clickhouse-datasource"},
       "targets": [
-        {"rawSql": "SELECT toStartOfHour(ingested_at) AS time, count() AS snapshots FROM uta.axf_snapshots GROUP BY time ORDER BY time", "format": "time_series"}
+        {"refId": "A", "format": "table", "datasource": {"type": "grafana-clickhouse-datasource"},
+         "rawSql": "SELECT count() AS snapshots FROM uta.axf_snapshots"}
+      ]
+    },
+    {
+      "title": "Latest curated values",
+      "type": "table",
+      "gridPos": {"h": 8, "w": 6, "x": 18, "y": 10},
+      "datasource": {"type": "grafana-clickhouse-datasource"},
+      "targets": [
+        {"refId": "A", "format": "table", "datasource": {"type": "grafana-clickhouse-datasource"},
+         "rawSql": "SELECT key, value_num FROM uta.axf_metrics WHERE product='$product' AND core='$core' ORDER BY key"}
       ]
     }
   ]

@@ -10,10 +10,20 @@ RTEMS:
   M:
     - Configuration.microseconds_per_tick
     - Configuration.ticks_per_timeslice
-    - Configuration.work_space_size
     - Configuration_RTEMS_API.maximum_tasks
     - Configuration_RTEMS_API.maximum_semaphores
     - rtems_maximum_priority
+    # per-field transform: raw bytes -> KiB, unit overridden
+    - key: Configuration.work_space_size
+      transform: kib
+      unit: KiB
+    # derived metrics computed from other fields (custom python in transforms.py)
+    - derived: Configuration.work_space_kib
+      transform: workspace_kib
+      section: Configuration
+    - derived: tick_frequency_hz
+      transform: tick_hz
+      section: Configuration
 
 # Real products — fill curated SSD telemetry paths (placeholders).
 SIRIUS:

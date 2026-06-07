@@ -159,9 +159,12 @@ async def ensure_jetstream(js, cfg):
 
 async def run():
     cfg = Config
+    from core.transforms import load as load_transforms
     registry = LayoutRegistry(cfg.LAYOUTS_DIR)
     uta = UtaLookup(cfg.UTA_SQLITE)
-    varreg = VariableRegistry(cfg.VARIABLES_YAML)
+    transforms = load_transforms(cfg.TRANSFORMS_PY)
+    varreg = VariableRegistry(cfg.VARIABLES_YAML, transforms)
+    log.info("loaded %d transforms", len(transforms))
     writer = ClickHouseWriter(cfg)
 
     nc = await nats.connect(cfg.NATS_URL, reconnect_time_wait=2,

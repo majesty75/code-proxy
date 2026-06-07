@@ -9,6 +9,7 @@ class Config:
 
     LAYOUTS_DIR     = os.environ.get("LAYOUTS_DIR", "/app/config/layouts")
     VARIABLES_YAML  = os.environ.get("VARIABLES_YAML", "/app/config/variables.yaml")
+    TRANSFORMS_PY   = os.environ.get("TRANSFORMS_PY", "/app/config/transforms.py")
 
     # UTA SQLite, mounted read-only. If unset/missing, runtime facts come from
     # the event itself (demo mode) and are flagged when absent.

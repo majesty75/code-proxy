@@ -133,31 +133,94 @@ def parse_dwarf(dwarf):
             types[tid] = {"tag": "unknown", "size": 0}
         return tid
 
+    variables = collect_variables(dwarf, process_type)
+    return {"types": types, "variables": variables}
+
+
+def _die_name(d):
+    a = d.attributes
+    return a['DW_AT_name'].value.decode() if 'DW_AT_name' in a else None
+
+
+def _origin(d):
+    """Follow DW_AT_specification / DW_AT_abstract_origin to the DIE that
+    carries the C++ name + scope (definitions reference their declaration)."""
+    for attr in ('DW_AT_specification', 'DW_AT_abstract_origin'):
+        if attr in d.attributes:
+            try:
+                return d.get_DIE_from_attribute(attr)
+            except Exception:
+                return None
+    return None
+
+
+def _addr_from_location(a):
+    """Absolute address from a DW_OP_addr location, else None."""
+    if 'DW_AT_location' not in a:
+        return None
+    loc = a['DW_AT_location'].value
+    if not isinstance(loc, (list, tuple, bytes, bytearray)) or not loc or loc[0] != 0x03:
+        return None
+    if len(loc) == 5:
+        return struct.unpack('<I', bytes(loc[1:]))[0]
+    if len(loc) == 9:
+        return struct.unpack('<Q', bytes(loc[1:]))[0]
+    return None
+
+
+def collect_variables(dwarf, process_type):
+    """Collect every global with a fixed address, including C++ namespace /
+    class-scoped variables (name carried via DW_AT_specification) and their
+    fully-qualified names (UHP::CEXEType::gstCexeContext), matching TRACE32."""
+    SCOPES = ('DW_TAG_namespace', 'DW_TAG_class_type', 'DW_TAG_structure_type')
     variables = {}
     for cu in dwarf.iter_CUs():
-        for die in cu.iter_DIEs():
-            if die.tag != 'DW_TAG_variable':
-                continue
-            a = die.attributes
-            if 'DW_AT_name' not in a or 'DW_AT_location' not in a:
-                continue
-            if 'DW_AT_declaration' in a:                 # skip extern declarations
-                continue
-            loc = a['DW_AT_location'].value
-            if not isinstance(loc, (list, tuple, bytes, bytearray)) or not loc or loc[0] != 0x03:
-                continue                                  # only DW_OP_addr globals
-            if len(loc) == 5:
-                addr = struct.unpack('<I', bytes(loc[1:]))[0]
-            elif len(loc) == 9:
-                addr = struct.unpack('<Q', bytes(loc[1:]))[0]
-            else:
-                continue
-            if addr == 0:
-                continue
-            name = a['DW_AT_name'].value.decode()
-            variables[name] = {"address": addr, "type_id": process_type(_type_die(die))}
+        # index this CU's DIEs + parent links so we can rebuild scope paths.
+        die_by_off, parent_of = {}, {}
 
-    return {"types": types, "variables": variables}
+        def index(d, parent_off):
+            die_by_off[d.offset] = d
+            if parent_off is not None:
+                parent_of[d.offset] = parent_off
+            for c in d.iter_children():
+                index(c, d.offset)
+        index(cu.get_top_DIE(), None)
+
+        def scope_of(d):
+            parts, off = [], parent_of.get(d.offset)
+            while off is not None:
+                p = die_by_off.get(off)
+                if p is None:
+                    break
+                if p.tag in SCOPES:
+                    nm = _die_name(p)
+                    if nm:
+                        parts.append(nm)
+                off = parent_of.get(p.offset)
+            parts.reverse()
+            return parts
+
+        for off, die in die_by_off.items():
+            if die.tag != 'DW_TAG_variable' or 'DW_AT_declaration' in die.attributes:
+                continue
+            addr = _addr_from_location(die.attributes)
+            if not addr:
+                continue
+            # name + scope: prefer the declaration (via specification) — it holds
+            # the true C++ scope (the class) that the definition often lacks.
+            name = _die_name(die)
+            type_die = _type_die(die)
+            scope_die = die
+            origin = _origin(die)
+            if origin is not None:
+                scope_die = origin
+                name = name or _die_name(origin)
+                type_die = type_die or _type_die(origin)
+            if not name or type_die is None:
+                continue
+            full = '::'.join(scope_of(scope_die) + [name])
+            variables[full] = {"address": addr, "type_id": process_type(type_die)}
+    return variables
 
 
 def open_axf(path):
