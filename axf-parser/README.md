@@ -10,6 +10,10 @@ time. The full nested decode is archived per dump for ML.
 
 This runs *alongside* the existing interlude log pipeline, in its own tables.
 
+> **Detailed documentation lives in [`docs/`](docs/README.md)** — architecture,
+> decode internals, the pipeline, database, configuration, tools, operations, and
+> the TRACE32 dump. This README is the quickstart; `docs/` is the reference.
+
 ## Architecture
 
 ```
